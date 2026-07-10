@@ -1,0 +1,7 @@
+{
+  "name": "cloudhost",
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm --filter @cloudhost/dashboard build",
+  "outputDirectory": "apps/dashboard/.next",
+  "framework": "nextjs"
+}
