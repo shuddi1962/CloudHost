@@ -1,0 +1,21 @@
+{
+  "name": "cloud-host",
+  "private": true,
+  "version": "1.0.0",
+  "description": "All-in-one cloud hosting platform - Next.js hosting, databases, workflows, WordPress & more",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "start": "turbo start",
+    "lint": "turbo lint",
+    "clean": "turbo clean",
+    "db:generate": "cd packages/db && drizzle-kit generate",
+    "db:push": "cd packages/db && drizzle-kit push",
+    "db:migrate": "cd packages/db && drizzle-kit migrate"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
