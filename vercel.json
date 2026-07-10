@@ -1,5 +1,0 @@
-{
-  "installCommand": "pnpm install",
-  "buildCommand": "cd apps/dashboard && pnpm build",
-  "outputDirectory": "apps/dashboard/.next"
-}

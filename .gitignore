@@ -9,3 +9,6 @@ nextjs/
 supabase/
 n8n/
 
+
+.vercel
+.env*
