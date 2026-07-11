@@ -108,6 +108,19 @@ const hostingerNav = [
   { href: "/dashboard/hostinger/educational-partnerships", label: "Edu Partnerships", icon: "M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" },
 ];
 
+const supabaseNav = [
+  { href: "/dashboard/supabase", label: "Supabase Project", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
+  { href: "/dashboard/supabase/table-editor", label: "Table Editor", icon: "M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" },
+  { href: "/dashboard/supabase/sql-editor", label: "SQL Editor", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" },
+  { href: "/dashboard/supabase/database", label: "Database", icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" },
+  { href: "/dashboard/supabase/authentication", label: "Auth", icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" },
+  { href: "/dashboard/supabase/storage", label: "Storage", icon: "M12 6v6m0 0v6m0-6h6m-6 0H6" },
+  { href: "/dashboard/supabase/edge-functions", label: "Edge Functions", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
+  { href: "/dashboard/supabase/realtime", label: "Realtime", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
+  { href: "/dashboard/supabase/advisors", label: "Advisors", icon: "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" },
+  { href: "/dashboard/supabase/logs", label: "Logs", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
+];
+
 const marketplaceNav = [
   { href: "/dashboard/marketplace", label: "Browse Marketplace", icon: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" },
   { href: "/dashboard/marketplace/instances", label: "My Instances", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
@@ -224,6 +237,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {(user.isAdmin || user.isSuperAdmin) && renderNavGroup("Marketplace Admin", adminMarketplaceNav, pathname)}
             {renderNavGroup("General", topNav, pathname)}
             {renderNavGroup("Marketplace", marketplaceNav, pathname)}
+            {renderNavGroup("Supabase", supabaseNav, pathname)}
             {renderNavGroup("Hosting", hostingNav, pathname)}
             {renderNavGroup("Database", databaseNav, pathname)}
             {renderNavGroup("Network", networkNav, pathname)}
