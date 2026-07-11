@@ -38,55 +38,44 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const tryDemoLogin = (e: string, p: string) => {
+    const demo = DEMO_ACCOUNTS[e.toLowerCase()];
+    if (demo && p === demo.password) {
+      localStorage.setItem("token", fakeJwt(demo.user.id, demo.user.email));
+      localStorage.setItem("user", JSON.stringify(demo.user));
+      localStorage.setItem("organizations", JSON.stringify([demo.org]));
+      router.push("/");
+      return true;
+    }
+    return false;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const demouser = DEMO_ACCOUNTS[email];
-    if (isLogin && demouser && password === demouser.password) {
-      localStorage.setItem("token", fakeJwt(demouser.user.id, demouser.user.email));
-      localStorage.setItem("user", JSON.stringify(demouser.user));
-      localStorage.setItem("organizations", JSON.stringify([demouser.org]));
-      router.push("/");
-      return;
-    }
-
-    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
-    const body = isLogin
-      ? { email, password }
-      : { email, password, name, organizationName: orgName };
+    if (tryDemoLogin(email, password)) return;
 
     try {
-      const res = await fetch(`${API_BASE || "http://localhost:3001"}${endpoint}`, {
+      const res = await fetch(`${API_BASE || "http://localhost:3001"}/api/auth/${isLogin ? "login" : "register"}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(isLogin
+          ? { email, password }
+          : { email, password, name, organizationName: orgName }
+        ),
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error);
-        setLoading(false);
-        return;
-      }
+      if (!res.ok) { setError(data.error); setLoading(false); return; }
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       router.push("/");
-      return;
     } catch {
-      if (isLogin && email && password) {
-        const fallback = DEMO_ACCOUNTS[email.toLowerCase()];
-        if (fallback && password === fallback.password) {
-          localStorage.setItem("token", fakeJwt(fallback.user.id, fallback.user.email));
-          localStorage.setItem("user", JSON.stringify(fallback.user));
-          localStorage.setItem("organizations", JSON.stringify([fallback.org]));
-          router.push("/");
-          return;
-        }
-      }
-      setError("Connection error. API server is not running. Use demo credentials below.");
+      if (tryDemoLogin(email, password)) return;
+      setError("No backend connected. Use the demo credentials below to explore the dashboard.");
       setLoading(false);
     }
   };
@@ -238,8 +227,8 @@ export default function HomePage() {
             </p>
             <div className="pt-2 border-t border-gray-100 mt-2">
               <p className="text-[11px] font-medium text-gray-500 mb-1">Demo Credentials</p>
-              <p className="text-[10px] text-gray-400">Admin: admin@cloudhost.com / admin123</p>
-              <p className="text-[10px] text-gray-400">User: user@cloudhost.com / user123</p>
+              <button onClick={() => { setEmail("admin@cloudhost.com"); setPassword("admin123"); setIsLogin(true); }} className="text-[10px] text-gray-400 hover:text-brand-600 block w-full text-left">Admin: admin@cloudhost.com / admin123</button>
+              <button onClick={() => { setEmail("user@cloudhost.com"); setPassword("user123"); setIsLogin(true); }} className="text-[10px] text-gray-400 hover:text-brand-600 block w-full text-left">User: user@cloudhost.com / user123</button>
             </div>
           </div>
         </div>
