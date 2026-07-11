@@ -26,7 +26,7 @@ export default function DeploymentDetailPage() {
   const [draggingReplace, setDraggingReplace] = useState(false);
   const [replaceFile, setReplaceFile] = useState<{ name: string; size: number } | null>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
-  const isReplaceable = deployment?.type === 'upload' || deployment?.type === 'quick-install' || deployment?.type === 'static';
+  const isReplaceable = !deployment?.type || (deployment.type !== 'git' && deployment.type !== 'auto');
 
   const handleReplaceFiles = async () => {
     if (!replaceFile || !params?.id) return;

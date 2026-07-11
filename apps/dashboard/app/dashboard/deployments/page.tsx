@@ -24,6 +24,10 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
   const [open, setOpen] = useState(false);
   const [domainPrompt, setDomainPrompt] = useState(false);
   const [domainInput, setDomainInput] = useState("");
+  const [replacePrompt, setReplacePrompt] = useState(false);
+  const [replaceFile, setReplaceFile] = useState<File | null>(null);
+  const [replacing, setReplacing] = useState(false);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -133,7 +137,8 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
         break;
       }
       case "replace-files": {
-        window.open(`/dashboard/deployments/${dep.id}`, '_self');
+        setReplacePrompt(true);
+        setReplaceFile(null);
         break;
       }
       case "delete": {
@@ -175,6 +180,24 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
     onRefresh();
   };
 
+  const handleReplaceSubmit = async () => {
+    if (!replaceFile) return;
+    setReplacing(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', replaceFile);
+      const res = await fetch(`/api/deployments/${dep.id}/replace`, {
+        method: 'POST',
+        body: fd,
+      });
+      if (res.ok) onRefresh();
+      else alert('Replace failed');
+    } catch { alert('Replace failed'); }
+    setReplacing(false);
+    setReplacePrompt(false);
+    setReplaceFile(null);
+  };
+
   const visitUrl = dep.domain ? `https://${dep.domain}` : null;
   const sourceUrl = dep.repository ? `https://github.com/${dep.repository}` : null;
 
@@ -187,7 +210,7 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
     ...(sourceUrl ? [{ key: "view-source", label: "View Source", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4", href: sourceUrl }] : [{ key: "view-source-action", label: "View Source", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" }]),
     { key: "copy-url", label: "Copy URL", icon: "M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" },
     { key: "assign-domain", label: "Assign Domain", icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" },
-    ...(dep.type === 'upload' || dep.type === 'quick-install' || dep.type === 'static'
+    ...(!dep.type || dep.type === 'upload' || dep.type === 'quick-install' || dep.type === 'static'
       ? [{ key: "replace-files", label: "Replace Files", icon: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" }]
       : []),
     { key: "divider-1", divider: true },
@@ -244,6 +267,50 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
             <div className="flex items-center justify-end gap-3">
               <button onClick={() => setDomainPrompt(false)} className="btn-secondary text-sm">Cancel</button>
               <button onClick={saveDomain} className="btn-primary text-sm">Save Domain</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {replacePrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30" onClick={() => { setReplacePrompt(false); setReplaceFile(null); }}>
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold mb-2">Replace Files</h3>
+            <p className="text-sm text-gray-500 mb-4">Upload new files to replace this deployment's content</p>
+            <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center hover:border-gray-300 transition-colors">
+              {!replaceFile ? (
+                <>
+                  <svg className="w-10 h-10 mx-auto mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  <p className="text-sm text-gray-500">Drag & drop or <button onClick={() => replaceInputRef.current?.click()} className="text-brand-600 hover:underline font-medium">browse</button></p>
+                  <p className="text-xs text-gray-400 mt-1">Supports .zip, .html, .js, .css and more</p>
+                </>
+              ) : (
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-gray-900">{replaceFile.name}</p>
+                    <p className="text-xs text-gray-400">{(replaceFile.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                  <button onClick={() => setReplaceFile(null)} className="text-xs text-red-500 hover:text-red-700 ml-2">Remove</button>
+                </div>
+              )}
+              <input ref={replaceInputRef} type="file"
+                accept=".zip,.tar.gz,.html,.js,.ts,.jsx,.tsx,.json,.css,.php,.py,.rb"
+                onChange={e => { const f = e.target.files?.[0]; if (f) setReplaceFile(f); }}
+                className="hidden" />
+            </div>
+            <div className="flex items-center justify-end gap-3 mt-4">
+              <button onClick={() => { setReplacePrompt(false); setReplaceFile(null); }} className="btn-secondary text-sm">Cancel</button>
+              <button onClick={handleReplaceSubmit} disabled={!replaceFile || replacing}
+                className="btn-primary text-sm inline-flex items-center gap-2">
+                {replacing ? 'Replacing...' : 'Replace & Rebuild'}
+              </button>
             </div>
           </div>
         </div>
