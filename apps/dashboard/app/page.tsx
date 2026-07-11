@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 const DEMO_ACCOUNTS: Record<string, { password: string; user: { id: string; email: string; name: string; isAdmin: boolean }; org: { id: string; name: string; slug: string; role: string } }> = {
   "admin@cloudhost.com": {
@@ -16,17 +17,7 @@ const DEMO_ACCOUNTS: Record<string, { password: string; user: { id: string; emai
   },
 };
 
-function base64url(str: string) {
-  return btoa(str).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
-}
-
-function fakeJwt(userId: string, email: string) {
-  const header = base64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-  const payload = base64url(JSON.stringify({ sub: userId, email, iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 86400 }));
-  return `${header}.${payload}.demo_signature`;
-}
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+const supabase = createClient();
 
 export default function HomePage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -38,12 +29,18 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const storeSession = async (userId: string, userEmail: string, userName: string, isAdmin: boolean, orgs: any[]) => {
+    const sessionRes = await supabase.auth.getSession();
+    const token = sessionRes.data.session?.access_token || "";
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify({ id: userId, email: userEmail, name: userName, isAdmin }));
+    localStorage.setItem("organizations", JSON.stringify(orgs));
+  };
+
   const tryDemoLogin = (e: string, p: string) => {
     const demo = DEMO_ACCOUNTS[e.toLowerCase()];
     if (demo && p === demo.password) {
-      localStorage.setItem("token", fakeJwt(demo.user.id, demo.user.email));
-      localStorage.setItem("user", JSON.stringify(demo.user));
-      localStorage.setItem("organizations", JSON.stringify([demo.org]));
+      storeSession(demo.user.id, demo.user.email, demo.user.name, demo.user.isAdmin, [demo.org]);
       router.push("/");
       return true;
     }
@@ -58,24 +55,66 @@ export default function HomePage() {
     if (tryDemoLogin(email, password)) return;
 
     try {
-      const res = await fetch(`${API_BASE || "http://localhost:3001"}/api/auth/${isLogin ? "login" : "register"}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(isLogin
-          ? { email, password }
-          : { email, password, name, organizationName: orgName }
-        ),
-      });
+      if (isLogin) {
+        const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+        if (authError) { setError(authError.message); setLoading(false); return; }
 
-      const data = await res.json();
-      if (!res.ok) { setError(data.error); setLoading(false); return; }
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id, email, name, is_admin")
+          .eq("id", data.user.id)
+          .single();
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      router.push("/");
+        const { data: memberships } = await supabase
+          .from("organization_members")
+          .select("organization_id, role, organizations(name, slug)")
+          .eq("user_id", data.user.id);
+
+        const orgs = (memberships || []).map((m: any) => ({
+          id: m.organization_id,
+          name: m.organizations?.name || "",
+          slug: m.organizations?.slug || "",
+          role: m.role,
+        }));
+
+        await storeSession(
+          data.user.id,
+          data.user.email!,
+          profile?.name || data.user.email!.split("@")[0],
+          profile?.is_admin || false,
+          orgs
+        );
+        router.push("/");
+      } else {
+        const { data, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { name } },
+        });
+        if (authError) { setError(authError.message); setLoading(false); return; }
+        if (!data.user) { setError("Signup failed. Please try again."); setLoading(false); return; }
+
+        if (orgName) {
+          const slug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          const { data: org } = await supabase
+            .from("organizations")
+            .insert({ name: orgName, slug })
+            .select("id, name, slug")
+            .single();
+
+          if (org) {
+            await supabase
+              .from("organization_members")
+              .insert({ organization_id: org.id, user_id: data.user.id, role: "owner" });
+          }
+        }
+
+        await storeSession(data.user.id, data.user.email!, name || data.user.email!.split("@")[0], false, []);
+        router.push("/");
+      }
     } catch {
       if (tryDemoLogin(email, password)) return;
-      setError("No backend connected. Use the demo credentials below to explore the dashboard.");
+      setError("Could not connect to Supabase. Use demo credentials below.");
       setLoading(false);
     }
   };
