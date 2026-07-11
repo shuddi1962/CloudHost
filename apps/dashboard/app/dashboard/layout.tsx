@@ -123,6 +123,20 @@ const supabaseNav = [
   { href: "/dashboard/supabase/logs", label: "Logs", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
 ];
 
+const gcpNav = [
+  { href: "/dashboard/gcp", label: "GCP Overview", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" },
+  { href: "/dashboard/gcp/compute", label: "Compute", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
+  { href: "/dashboard/gcp/storage", label: "Storage", icon: "M4 7v10c2.21 0 4-1.79 4-4V7c0-2.21-1.79-4-4-4z" },
+  { href: "/dashboard/gcp/databases", label: "Databases", icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4" },
+  { href: "/dashboard/gcp/networking", label: "Networking", icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9" },
+  { href: "/dashboard/gcp/analytics", label: "Analytics", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" },
+  { href: "/dashboard/gcp/ai", label: "AI / ML", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
+  { href: "/dashboard/gcp/security", label: "Security", icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" },
+  { href: "/dashboard/gcp/iam", label: "IAM & Admin", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857" },
+  { href: "/dashboard/gcp/observability", label: "Observability", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
+  { href: "/dashboard/gcp/serverless", label: "Serverless", icon: "M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" },
+];
+
 const marketplaceNav = [
   { href: "/dashboard/marketplace", label: "Browse Marketplace", icon: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" },
   { href: "/dashboard/marketplace/instances", label: "My Instances", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
@@ -240,6 +254,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {renderNavGroup("General", topNav, pathname)}
             {renderNavGroup("Marketplace", marketplaceNav, pathname)}
             {renderNavGroup("Supabase", supabaseNav, pathname)}
+            {renderNavGroup("Google Cloud", gcpNav, pathname)}
             {renderNavGroup("Hosting", hostingNav, pathname)}
             {renderNavGroup("Database", databaseNav, pathname)}
             {renderNavGroup("Network", networkNav, pathname)}
