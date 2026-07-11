@@ -132,6 +132,10 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
         setDomainInput(dep.domain || '');
         break;
       }
+      case "replace-files": {
+        window.open(`/dashboard/deployments/${dep.id}`, '_self');
+        break;
+      }
       case "delete": {
         if (!confirm("Delete this deployment?")) return;
         try {
@@ -183,6 +187,9 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
     ...(sourceUrl ? [{ key: "view-source", label: "View Source", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4", href: sourceUrl }] : [{ key: "view-source-action", label: "View Source", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" }]),
     { key: "copy-url", label: "Copy URL", icon: "M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" },
     { key: "assign-domain", label: "Assign Domain", icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" },
+    ...(dep.type === 'upload' || dep.type === 'quick-install' || dep.type === 'static'
+      ? [{ key: "replace-files", label: "Replace Files", icon: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" }]
+      : []),
     { key: "divider-1", divider: true },
     { key: "delete", label: "Delete", icon: "M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16", danger: true },
   ];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 const BUILD_PHASES = [
@@ -22,6 +22,44 @@ export default function DeploymentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "pipeline" | "env">("overview");
   const [deploying, setDeploying] = useState(false);
+  const [replacing, setReplacing] = useState(false);
+  const [draggingReplace, setDraggingReplace] = useState(false);
+  const [replaceFile, setReplaceFile] = useState<{ name: string; size: number } | null>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
+  const isReplaceable = deployment?.type === 'upload' || deployment?.type === 'quick-install' || deployment?.type === 'static';
+
+  const handleReplaceFiles = async () => {
+    if (!replaceFile || !params?.id) return;
+    setReplacing(true);
+    try {
+      const formData = new FormData();
+      if (replaceInputRef.current?.files?.[0]) {
+        formData.append('file', replaceInputRef.current.files[0]);
+      }
+      const res = await fetch(`/api/deployments/${params.id}/replace`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDeployment((prev: any) => ({ ...prev, status: data.status, build_log: data.build_log }));
+        setReplaceFile(null);
+        if (replaceInputRef.current) replaceInputRef.current.value = '';
+      } else {
+        alert('Replace failed');
+      }
+    } catch {
+      alert('Replace failed');
+    }
+    setReplacing(false);
+  };
+
+  const handleReplaceDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDraggingReplace(false);
+    const file = e.dataTransfer.files[0];
+    if (file) setReplaceFile({ name: file.name, size: file.size });
+  }, []);
 
   useEffect(() => {
     if (!params?.id) return;
@@ -245,6 +283,69 @@ export default function DeploymentDetailPage() {
               </pre>
             </div>
           </div>
+
+          {/* Replace Files */}
+          {isReplaceable && (
+            <div className="md:col-span-3 card">
+              <div className="card-body">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-lg font-semibold">Replace Files</h2>
+                    <p className="text-xs text-gray-500 mt-0.5">Upload new files to update this deployment — it will be rebuilt automatically</p>
+                  </div>
+                </div>
+                <div
+                  onDragOver={e => { e.preventDefault(); setDraggingReplace(true); }}
+                  onDragLeave={() => setDraggingReplace(false)}
+                  onDrop={handleReplaceDrop}
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${draggingReplace ? 'border-brand-500 bg-brand-50/30' : 'border-gray-200 hover:border-gray-300'}`}>
+                  {!replaceFile ? (
+                    <>
+                      <svg className="w-10 h-10 mx-auto mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      <p className="text-sm text-gray-500">Drag & drop a file or <button onClick={() => replaceInputRef.current?.click()} className="text-brand-600 hover:underline font-medium">browse</button></p>
+                      <p className="text-xs text-gray-400 mt-1">Supports .zip, .html, .js, .css and more</p>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-gray-900">{replaceFile.name}</p>
+                        <p className="text-xs text-gray-400">{(replaceFile.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                      <button onClick={() => { setReplaceFile(null); if (replaceInputRef.current) replaceInputRef.current.value = ''; }}
+                        className="text-xs text-red-500 hover:text-red-700 ml-2">Remove</button>
+                    </div>
+                  )}
+                  <input ref={replaceInputRef} type="file"
+                    accept=".zip,.tar.gz,.html,.js,.ts,.jsx,.tsx,.json,.css,.php,.py,.rb"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) setReplaceFile({ name: f.name, size: f.size }); }}
+                    className="hidden" />
+                </div>
+                {replaceFile && (
+                  <div className="mt-3 flex justify-end">
+                    <button onClick={handleReplaceFiles} disabled={replacing}
+                      className="px-4 py-2 bg-brand-600 text-white text-sm rounded-lg hover:bg-brand-700 disabled:opacity-50 inline-flex items-center gap-2">
+                      {replacing ? (
+                        <>
+                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          Rebuilding...
+                        </>
+                      ) : 'Replace & Rebuild'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Deployment Preview */}
           {deployment.status === 'running' && (
