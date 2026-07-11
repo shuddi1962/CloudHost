@@ -56,7 +56,7 @@ export default function ProjectDetailPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/projects")} className="text-gray-400 hover:text-gray-600">
+          <button onClick={() => router.push("/dashboard/projects")} className="text-gray-400 hover:text-gray-600">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -72,7 +72,7 @@ export default function ProjectDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Link href="/deployments" className="btn-primary text-sm flex items-center gap-1.5">
+          <Link href="/dashboard/deployments" className="btn-primary text-sm flex items-center gap-1.5">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -252,7 +252,7 @@ export default function ProjectDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold">Recent Deployments</h3>
-                  <Link href="/deployments" className="text-xs text-brand-600 hover:text-brand-800">View all</Link>
+                  <Link href="/dashboard/deployments" className="text-xs text-brand-600 hover:text-brand-800">View all</Link>
                 </div>
                 <div className="space-y-2">
                   {deployments.slice(0, 5).map((dep) => (
@@ -280,7 +280,7 @@ export default function ProjectDetailPage() {
             {deployments.length === 0 ? (
               <div className="text-center py-8 text-gray-400">
                 <p>No deployments yet. Create your first deployment.</p>
-                <Link href="/deployments" className="text-brand-600 hover:text-brand-800 text-sm mt-2 inline-block">Go to Deployments</Link>
+                <Link href="/dashboard/deployments" className="text-brand-600 hover:text-brand-800 text-sm mt-2 inline-block">Go to Deployments</Link>
               </div>
             ) : (
               deployments.map((dep) => (
@@ -320,7 +320,7 @@ export default function ProjectDetailPage() {
             {databases.length === 0 ? (
               <div className="text-center py-8 text-gray-400">
                 <p>No databases created for this project.</p>
-                <Link href="/databases" className="text-brand-600 hover:text-brand-800 text-sm mt-2 inline-block">Provision a Database</Link>
+                <Link href="/dashboard/databases" className="text-brand-600 hover:text-brand-800 text-sm mt-2 inline-block">Provision a Database</Link>
               </div>
             ) : (
               databases.map((db) => (
@@ -352,7 +352,7 @@ export default function ProjectDetailPage() {
             </svg>
             <p className="text-gray-500 font-medium">Manage Domains</p>
             <p className="text-gray-400 text-sm mt-1">Connect custom domains to your deployments</p>
-            <Link href="/domains" className="btn-primary text-sm mt-4 inline-flex items-center gap-1.5">
+            <Link href="/dashboard/domains" className="btn-primary text-sm mt-4 inline-flex items-center gap-1.5">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>

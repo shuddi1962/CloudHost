@@ -78,7 +78,7 @@ export default function DashboardPage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold">Recent Deployments</h2>
-          <Link href="/deployments" className="text-sm text-brand-600 hover:text-brand-800 font-medium">View all</Link>
+          <Link href="/dashboard/deployments" className="text-sm text-brand-600 hover:text-brand-800 font-medium">View all</Link>
         </div>
         <div className="grid gap-3">
           {recentDeployments.map((dep) => (

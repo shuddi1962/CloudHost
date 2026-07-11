@@ -70,7 +70,7 @@ export default function DeploymentDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/deployments")} className="text-gray-400 hover:text-gray-600">
+          <button onClick={() => router.push("/dashboard/deployments")} className="text-gray-400 hover:text-gray-600">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -315,7 +315,7 @@ export default function DeploymentDetailPage() {
               <span className="badge badge-success">Active</span>
             </div>
             <p className="text-sm text-gray-500 text-center py-4">
-              <Link href="/domains" className="text-brand-600 hover:text-brand-800 font-medium">Add a custom domain</Link> to point to this deployment
+                             <Link href="/dashboard/domains" className="text-brand-600 hover:text-brand-800 font-medium">Add a custom domain</Link> to point to this deployment
             </p>
           </div>
         )}

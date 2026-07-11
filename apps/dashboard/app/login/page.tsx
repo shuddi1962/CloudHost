@@ -44,7 +44,7 @@ export default function LoginPage() {
     const demo = DEMO_ACCOUNTS[e.toLowerCase()];
     if (demo && p === demo.password) {
       storeSession(demo.user.id, demo.user.email, demo.user.name, demo.user.isAdmin, demo.user.isSuperAdmin, [demo.org]);
-      router.push(demo.user.isAdmin ? "/admin" : "/");
+      router.push(demo.user.isAdmin ? "/dashboard/admin" : "/dashboard");
       return true;
     }
     return false;
@@ -90,7 +90,7 @@ export default function LoginPage() {
           isSupAdm,
           orgs
         );
-        router.push(isAdm ? "/admin" : "/");
+        router.push(isAdm ? "/dashboard/admin" : "/dashboard");
       } else {
         const { data, error: authError } = await supabase.auth.signUp({
           email,
@@ -116,7 +116,7 @@ export default function LoginPage() {
         }
 
         await storeSession(data.user.id, data.user.email!, name || data.user.email!.split("@")[0], false, false, []);
-        router.push("/");
+        router.push("/dashboard");
       }
     } catch {
       if (tryDemoLogin(email, password)) return;
