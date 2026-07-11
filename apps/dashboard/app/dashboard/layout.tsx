@@ -123,6 +123,7 @@ const storageNav = [
 const automationNav = [
   { href: "/dashboard/workflows", label: "Workflows", icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" },
   { href: "/dashboard/cicd", label: "CI/CD Pipeline", icon: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" },
+  { href: "/dashboard/git/accounts", label: "Git Accounts", icon: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" },
   { href: "/dashboard/cron-jobs", label: "Cron Jobs", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
   { href: "/dashboard/edge-functions", label: "Edge Functions", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
 ];

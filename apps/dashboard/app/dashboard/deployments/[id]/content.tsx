@@ -17,6 +17,7 @@ const BUILD_PHASES = [
 export default function DeploymentDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const deploymentId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [deployment, setDeployment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "pipeline" | "env">("overview");
@@ -207,6 +208,61 @@ export default function DeploymentDetailPage() {
               </pre>
             </div>
           </div>
+
+          {/* Deployment Preview */}
+          {deployment.status === 'running' && (
+            <div className="md:col-span-3 card">
+              <div className="card-body">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-semibold">Deployment Preview</h2>
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1 text-xs text-gray-400">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                      Preview
+                    </span>
+                    <a href={`https://${deployment.domain || `${deploymentId?.substring(0, 8)}.cloudhost.app`}`} target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-indigo-600 hover:underline flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                      Open in new tab
+                    </a>
+                  </div>
+                </div>
+                <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 border-b border-gray-200">
+                    <div className="flex gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                    </div>
+                    <div className="flex-1 px-3 py-1 bg-white rounded text-xs text-gray-400 font-mono truncate mx-2">
+                      https://{deployment.domain || `${deploymentId?.substring(0, 8)}.cloudhost.app`}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <span className={`w-1.5 h-1.5 rounded-full ${deployment.status === 'running' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      {deployment.status === 'running' ? 'Live' : 'Offline'}
+                    </div>
+                  </div>
+                  <div className="h-64 md:h-80 flex items-center justify-center bg-gray-50">
+                    <iframe
+                      src={`https://${deployment.domain || `${deploymentId?.substring(0, 8)}.cloudhost.app`}`}
+                      className="w-full h-full border-0"
+                      title="Deployment Preview"
+                      sandbox="allow-scripts allow-same-origin"
+                      onError={() => {}}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs text-gray-400">
+                    <span className="font-medium text-gray-500">Commit URL:</span>{' '}
+                    <code className="font-mono">{deployment.domain || `${deploymentId?.substring(0, 8)}.cloudhost.app`}</code>
+                  </span>
+                  <button onClick={() => navigator.clipboard.writeText(`https://${deployment.domain || `${deploymentId?.substring(0, 8)}.cloudhost.app`}`)}
+                    className="text-xs text-indigo-600 hover:underline">Copy</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

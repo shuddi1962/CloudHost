@@ -22,6 +22,8 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [installing, setInstalling] = useState(false);
   const [installed, setInstalled] = useState(false);
+  const [subscribeStep, setSubscribeStep] = useState<'initial' | 'plans' | 'confirm' | 'done'>('initial');
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [newRating, setNewRating] = useState(0);
   const [reviewTitle, setReviewTitle] = useState("");
@@ -64,16 +66,28 @@ export default function ProductDetail() {
     return new Date(d).toLocaleDateString();
   };
 
-  const install = async () => {
-    if (!app) return;
+  const plans = [
+    { id: 'free', name: 'Free', price: '$0', period: '/month', desc: 'Basic features, community support', features: ['1 deployment', 'Basic analytics', 'Community support', '100 req/min'] },
+    { id: 'starter', name: 'Starter', price: '$9', period: '/month', desc: 'For small projects', features: ['5 deployments', 'Advanced analytics', 'Email support', '1000 req/min', 'Custom domain'] },
+    { id: 'pro', name: 'Professional', price: '$29', period: '/month', desc: 'For growing businesses', features: ['Unlimited deployments', 'Real-time analytics', 'Priority support', '10K req/min', 'Custom domain', 'Team collaboration'] },
+    { id: 'enterprise', name: 'Enterprise', price: '$99', period: '/month', desc: 'For large organizations', features: ['Unlimited everything', 'Dedicated support', 'SLA guarantee', '100K req/min', 'SSO', 'Custom contract'] },
+  ];
+
+  const subscribe = async () => {
+    if (!selectedPlan) return;
     setInstalling(true);
-    const token = localStorage.getItem("token");
-    await fetch("http://localhost:3001/api/marketplace/install", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ appId: app.id, appName: app.name }),
-    });
-    setInstalled(true);
+    try {
+      const res = await fetch('/api/marketplace/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appId: app.id, planId: selectedPlan.id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSubscribeStep('done');
+        setInstalled(true);
+      }
+    } catch {}
     setInstalling(false);
   };
 
@@ -244,14 +258,69 @@ export default function ProductDetail() {
                 <p className="text-xs text-gray-500 mt-1">Pricing may vary by usage</p>
               </div>
 
-              <button onClick={install} disabled={installing || installed}
-                className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${
-                  installed
-                    ? "bg-green-100 text-green-700 cursor-default"
-                    : "bg-brand-600 text-white hover:bg-brand-700"
-                }`}>
-                {installing ? "Subscribing..." : installed ? "✓ Subscribed" : "Subscribe"}
-              </button>
+              {/* Subscribe Flow */}
+              {subscribeStep === 'initial' && (
+                <button onClick={() => setSubscribeStep('plans')} disabled={installed}
+                  className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${installed ? "bg-green-100 text-green-700 cursor-default" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}>
+                  {installed ? "✓ Subscribed" : "Subscribe"}
+                </button>
+              )}
+
+              {subscribeStep === 'plans' && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-gray-400 uppercase">Select a Plan</p>
+                  {plans.map(plan => (
+                    <button key={plan.id} onClick={() => { setSelectedPlan(plan); setSubscribeStep('confirm'); }}
+                      className={`w-full text-left p-3 rounded-lg border transition-all ${selectedPlan?.id === plan.id ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">{plan.name}</span>
+                        <span className="text-sm font-bold">{plan.price}<span className="text-xs text-gray-400 font-normal">{plan.period}</span></span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">{plan.desc}</p>
+                    </button>
+                  ))}
+                  <button onClick={() => setSubscribeStep('initial')} className="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+                </div>
+              )}
+
+              {subscribeStep === 'confirm' && selectedPlan && (
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-gray-400 uppercase">Confirm Subscription</p>
+                  <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                    <div className="flex justify-between text-sm"><span>Plan</span><span className="font-medium">{selectedPlan.name}</span></div>
+                    <div className="flex justify-between text-sm"><span>Price</span><span className="font-medium">{selectedPlan.price}{selectedPlan.period}</span></div>
+                    <div className="flex justify-between text-sm"><span>App</span><span className="font-medium">{app.name}</span></div>
+                  </div>
+                  <div className="text-xs text-gray-400 space-y-1">
+                    {selectedPlan.features.map((f: string) => (
+                      <div key={f} className="flex items-center gap-1">
+                        <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        {f}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={subscribe} disabled={installing}
+                      className="flex-1 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+                      {installing ? 'Processing...' : 'Confirm & Subscribe'}
+                    </button>
+                    <button onClick={() => setSubscribeStep('plans')} className="px-3 py-2 border text-sm rounded-lg">Back</button>
+                  </div>
+                </div>
+              )}
+
+              {subscribeStep === 'done' && (
+                <div className="text-center py-2">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  <p className="text-sm font-medium text-green-700">Subscribed!</p>
+                  <p className="text-xs text-gray-400 mt-1">Your app is being provisioned</p>
+                  <button className="mt-3 text-xs text-indigo-600 hover:underline" onClick={() => router.push('/dashboard/marketplace/instances')}>
+                    Manage Subscription
+                  </button>
+                </div>
+              )}
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between py-2 border-b border-gray-50">
