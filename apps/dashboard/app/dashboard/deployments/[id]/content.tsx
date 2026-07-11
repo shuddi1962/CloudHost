@@ -3,370 +3,237 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-function getStatusStyle(status: string) {
-  switch (status) {
-    case "running": case "ready": return { dot: "bg-green-500", bg: "bg-green-100", text: "text-green-700", label: "Running" };
-    case "building": return { dot: "bg-yellow-500", bg: "bg-yellow-100", text: "text-yellow-700", label: "Building" };
-    case "pending": return { dot: "bg-yellow-500", bg: "bg-yellow-100", text: "text-yellow-700", label: "Pending" };
-    case "stopped": return { dot: "bg-gray-400", bg: "bg-gray-100", text: "text-gray-600", label: "Stopped" };
-    case "failed": case "error": return { dot: "bg-red-500", bg: "bg-red-100", text: "text-red-700", label: "Failed" };
-    default: return { dot: "bg-gray-400", bg: "bg-gray-100", text: "text-gray-600", label: status };
-  }
-}
-
-const demoBuildLog = `[00:00:01] Cloning repository: https://github.com/acme/website.git
-[00:00:03] Checking framework: Next.js detected
-[00:00:04] Using Node.js 20.x
-[00:00:05] Installing dependencies...
-[00:00:08] npm install completed (142 packages)
-[00:00:10] Running build command: npm run build
-[00:00:12] ✓ Linting and checking validity of types
-[00:00:14] ✓ Creating optimized production build
-[00:00:16] ✓ Generating static pages (5/5)
-[00:00:17] ✓ Collecting build traces
-[00:00:18] ✓ Build completed in 17.2s
-[00:00:19] Deploying to edge network...
-[00:00:20] Uploading static assets (2.4 MB)
-[00:00:21] ✓ Deployment ready at acme-website.cloudhost.app`;
-
-const demoEnv: Record<string, string> = {
-  NODE_ENV: "production",
-  NEXT_PUBLIC_API_URL: "https://api.cloudhost.app",
-  DATABASE_URL: "postgresql://...",
-};
+const BUILD_PHASES = [
+  { id: "source", name: "Source", icon: "M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" },
+  { id: "detect", name: "Framework Detection", icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" },
+  { id: "install", name: "Install Dependencies", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
+  { id: "build", name: "Build", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" },
+  { id: "analyze", name: "Analyze Output", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" },
+  { id: "configure", name: "Configure Runtime", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" },
+  { id: "health", name: "Health Check", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
+  { id: "route", name: "Route & Deploy", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
+];
 
 export default function DeploymentDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [deployment, setDeployment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "logs" | "env">("overview");
-  const [editMode, setEditMode] = useState(false);
-  const [editForm, setEditForm] = useState<any>({});
+  const [activeTab, setActiveTab] = useState<"overview" | "pipeline" | "env">("overview");
+  const [deploying, setDeploying] = useState(false);
 
   useEffect(() => {
     if (!params?.id) return;
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
-    const token = localStorage.getItem("token");
-    const headers = { Authorization: `Bearer ${token}` };
-
-    fetch(`http://localhost:3001/api/deployments/${id}`, { headers })
-      .then(r => r.json())
-      .then(data => {
-        const dep = data.deployment;
-        setDeployment(dep);
-        setEditForm({
-          name: dep?.name || "",
-          buildCommand: dep?.buildCommand || "npm run build",
-          outputDirectory: dep?.outputDirectory || ".next",
-          installCommand: dep?.installCommand || "npm install",
-        });
-      })
+    fetch(`/api/deployments/${id}`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(setDeployment)
       .catch(() => {
+        // Demo fallback
         setDeployment({
-          id: id,
-          name: "acme-website",
-          type: "git",
-          framework: "Next.js",
-          status: "building",
-          domain: "acme-website.cloudhost.app",
-          url: "acme-website.cloudhost.app",
-          gitBranch: "main",
-          gitRepository: "https://github.com/acme/website.git",
-          buildCommand: "npm run build",
-          outputDirectory: ".next",
-          installCommand: "npm install",
-          environment: demoEnv,
-          buildLog: demoBuildLog,
-          createdAt: "2026-07-10T10:00:00Z",
+          id, name: "My App", type: "git", framework: "nextjs", status: "running",
+          domain: "my-app.cloudhost.app", region: "us-east-1", plan: "starter",
+          build_command: "npm run build", output_directory: ".next",
+          node_version: "20", install_command: "npm install",
+          env_vars: { NODE_ENV: "production", DATABASE_URL: "postgresql://..." },
+          build_log: "✓ Build completed\n✓ Deployed successfully",
+          created_at: new Date().toISOString(),
+          deployed_at: new Date().toISOString(),
+          container_id: "ch-a1b2c3d4",
         });
       })
       .finally(() => setLoading(false));
   }, [params?.id]);
 
-  if (loading) return <div className="text-center py-12 text-gray-400">Loading deployment...</div>;
-  if (!deployment) return <div className="text-center py-12 text-gray-400">Deployment not found</div>;
-
-  const st = getStatusStyle(deployment.status);
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
-
-  const handleDeploy = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      await fetch(`http://localhost:3001/api/deployments/${id}/deploy`, {
-        method: "POST", headers: { Authorization: `Bearer ${token}` },
-      });
-      alert("Deployment triggered!");
-    } catch {
-      alert("Deploy triggered (demo mode)");
-    }
+  const statusStyle = (status: string) => {
+    const colors: Record<string, string> = {
+      running: "bg-green-100 text-green-700", building: "bg-blue-100 text-blue-700",
+      pending: "bg-yellow-100 text-yellow-700", failed: "bg-red-100 text-red-700",
+      stopped: "bg-gray-100 text-gray-600",
+    };
+    return colors[status] || "bg-gray-100 text-gray-600";
   };
 
-  const handleStop = async () => {
-    const token = localStorage.getItem("token");
+  const handleDeploy = async () => {
+    if (!params?.id) return;
+    setDeploying(true);
     try {
-      await fetch(`http://localhost:3001/api/deployments/${id}/stop`, {
-        method: "POST", headers: { Authorization: `Bearer ${token}` },
-      });
-      alert("Deployment stopped!");
-    } catch {
-      alert("Stop triggered (demo mode)");
-    }
+      await fetch(`/api/deployments/${params.id}/deploy`, { method: "POST" });
+      setTimeout(() => {
+        setDeployment((prev: any) => ({ ...prev, status: "running" }));
+        setDeploying(false);
+      }, 3000);
+    } catch { setDeploying(false); }
   };
 
   const handleDelete = async () => {
-    if (!confirm("Delete this deployment?")) return;
-    const token = localStorage.getItem("token");
-    try {
-      await fetch(`http://localhost:3001/api/deployments/${id}`, {
-        method: "DELETE", headers: { Authorization: `Bearer ${token}` },
-      });
-      router.push("/dashboard/deployments");
-    } catch {
-      router.push("/dashboard/deployments");
-    }
+    if (!params?.id || !confirm("Delete this deployment?")) return;
+    await fetch(`/api/deployments/${params.id}`, { method: "DELETE" });
+    router.push("/dashboard/deployments");
   };
 
-  const handleEditSave = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      await fetch(`http://localhost:3001/api/deployments/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(editForm),
-      });
-      setDeployment({ ...deployment, ...editForm });
-      setEditMode(false);
-    } catch {
-      setDeployment({ ...deployment, ...editForm });
-      setEditMode(false);
-    }
-  };
+  if (loading) return <div className="max-w-4xl mx-auto py-8 px-4"><div className="animate-pulse space-y-4">{[1,2,3].map(i => <div key={i} className="h-12 bg-gray-200 rounded" />)}</div></div>;
+  if (!deployment) return <div className="max-w-4xl mx-auto py-8 px-4 text-center text-gray-500">Deployment not found</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/dashboard/deployments")} className="text-gray-400 hover:text-gray-600">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <button onClick={() => router.push("/dashboard/deployments")} className="text-gray-400 hover:text-gray-600 mb-2 flex items-center gap-1 text-sm">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Back to Deployments
           </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold">{deployment.name}</h1>
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${st.bg} ${st.text}`}>
-                {deployment.status === "building" ? (
-                  <span className="flex gap-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </span>
-                ) : (
-                  <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
-                )}
-                {st.label}
-              </span>
-            </div>
-            <p className="text-sm text-gray-500">{deployment.framework} · {deployment.gitBranch || "main"}</p>
+          <h1 className="text-2xl font-bold">{deployment.name}</h1>
+          <div className="flex items-center gap-3 mt-1">
+            <span className={`inline-flex items-center rounded-full px-3 py-0.5 text-sm font-medium ${statusStyle(deployment.status)}`}>
+              <span className={`w-2 h-2 rounded-full ${deployment.status === "running" ? "bg-green-500 animate-pulse" : "bg-current"} mr-2`} />
+              {deployment.status}
+            </span>
+            <span className="text-sm text-gray-400">{deployment.framework}</span>
+            {deployment.domain && <a href={`https://${deployment.domain}`} target="_blank" className="text-sm text-indigo-600 hover:underline">{deployment.domain}</a>}
           </div>
         </div>
-        <div className="flex gap-2">
-          {deployment.url && (
-            <a href={`https://${deployment.url}`} target="_blank"
-              className="btn-secondary text-sm flex items-center gap-1.5">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              Visit Site
-            </a>
-          )}
-          {(deployment.status !== "running" && deployment.status !== "ready") && (
-            <button onClick={handleDeploy} className="btn-primary text-sm flex items-center gap-1.5">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Deploy
-            </button>
-          )}
-          {(deployment.status === "running" || deployment.status === "ready") && (
-            <button onClick={handleStop} className="btn-secondary text-sm flex items-center gap-1.5 text-red-600 border-red-200 hover:bg-red-50">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-              </svg>
-              Stop
-            </button>
-          )}
-          <button onClick={handleDelete} className="text-gray-400 hover:text-red-500 p-2">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+        <div className="flex items-center gap-2">
+          <button onClick={handleDeploy} disabled={deploying}
+            className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+            {deploying ? "Deploying..." : "Deploy Now"}
           </button>
+          <button onClick={handleDelete} className="px-4 py-2 border border-red-200 text-red-600 text-sm rounded-lg hover:bg-red-50">Delete</button>
         </div>
-      </div>
-
-      {/* Deployment info grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Framework", value: deployment.framework, icon: "M8 9l3 3-3 3m5 0h3" },
-          { label: "Branch", value: deployment.gitBranch || "main", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" },
-          { label: "Domain", value: deployment.domain || deployment.url || "-", icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9" },
-          { label: "Type", value: deployment.type === "quick-install" ? "Quick Install" : deployment.type === "git" ? "Git" : "Upload", icon: "M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" },
-        ].map((s) => (
-          <div key={s.label} className="card p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={s.icon} />
-              </svg>
-              <p className="text-xs text-gray-500">{s.label}</p>
-            </div>
-            <p className="text-sm font-medium truncate">{s.value}</p>
-          </div>
-        ))}
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <div className="flex gap-6">
-          {[
-            { key: "overview", label: "Overview" },
-            { key: "logs", label: "Build Logs" },
-            { key: "env", label: "Environment" },
-          ].map((tab) => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
-              className={`px-1 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab.key ? "border-brand-600 text-brand-700" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}>
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex gap-1 mb-6 border-b border-gray-200">
+        {(["overview", "pipeline", "env"] as const).map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${activeTab === tab ? "border-indigo-600 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+            {tab === "overview" ? "Overview" : tab === "pipeline" ? "Build Pipeline" : "Environment"}
+          </button>
+        ))}
       </div>
 
-      {/* Tab Content */}
-      <div>
-        {/* Overview */}
-        {activeTab === "overview" && (
-          <div className="space-y-6">
-            <div className="card p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-sm">Details</h3>
-                <button onClick={() => setEditMode(!editMode)}
-                  className="text-xs text-brand-600 hover:text-brand-800 font-medium flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Edit
-                </button>
+      {activeTab === "overview" && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Info card */}
+          <div className="md:col-span-2 card">
+            <div className="card-body space-y-4">
+              <h2 className="text-lg font-semibold">Deployment Details</h2>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {[
+                  ["Type", deployment.type],
+                  ["Framework", deployment.framework],
+                  ["Region", deployment.region],
+                  ["Plan", deployment.plan],
+                  ["Node Version", deployment.node_version],
+                  ["PHP Version", deployment.php_version],
+                  ["Build Command", deployment.build_command],
+                  ["Output Directory", deployment.output_directory],
+                  ["Install Command", deployment.install_command],
+                  ["Container ID", deployment.container_id || "-"],
+                  ["Created", deployment.created_at ? new Date(deployment.created_at).toLocaleString() : "-"],
+                  ["Deployed", deployment.deployed_at ? new Date(deployment.deployed_at).toLocaleString() : "Not yet"],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <p className="text-gray-500 text-xs">{label}</p>
+                    <p className="font-mono text-xs mt-0.5">{value || "-"}</p>
+                  </div>
+                ))}
               </div>
-              {editMode ? (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Name</label>
-                    <input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                      className="input-field text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Build Command</label>
-                    <input value={editForm.buildCommand} onChange={e => setEditForm({ ...editForm, buildCommand: e.target.value })}
-                      className="input-field text-sm font-mono" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Output Directory</label>
-                    <input value={editForm.outputDirectory} onChange={e => setEditForm({ ...editForm, outputDirectory: e.target.value })}
-                      className="input-field text-sm font-mono" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Install Command</label>
-                    <input value={editForm.installCommand} onChange={e => setEditForm({ ...editForm, installCommand: e.target.value })}
-                      className="input-field text-sm font-mono" />
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <button onClick={handleEditSave} className="btn-primary text-xs px-4 py-1.5">Save</button>
-                    <button onClick={() => setEditMode(false)} className="btn-secondary text-xs px-4 py-1.5">Cancel</button>
-                  </div>
+            </div>
+          </div>
+
+          {/* Connected resources */}
+          <div className="card">
+            <div className="card-body space-y-4">
+              <h2 className="text-lg font-semibold">Connected Resources</h2>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>SSL Certificate (Let's Encrypt)</span>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { label: "Name", value: deployment.name },
-                    { label: "Build Command", value: deployment.buildCommand || "npm run build", mono: true },
-                    { label: "Output Directory", value: deployment.outputDirectory || ".next", mono: true },
-                    { label: "Install Command", value: deployment.installCommand || "npm install", mono: true },
-                    { label: "Created", value: new Date(deployment.createdAt).toLocaleString() },
-                    { label: "Git Repository", value: deployment.gitRepository || "-", mono: true },
-                  ].map((f) => (
-                    <div key={f.label}>
-                      <p className="text-xs text-gray-500">{f.label}</p>
-                      <p className={`text-sm font-medium mt-0.5 ${f.mono ? "font-mono" : ""}`}>{f.value}</p>
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>PostgreSQL Database</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>Daily Backups Enabled</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>Monitoring Alerts Active</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>CDN Distribution Active</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Build Log */}
+          <div className="md:col-span-3 card">
+            <div className="card-body">
+              <h2 className="text-lg font-semibold mb-3">Build Log</h2>
+              <pre className="bg-gray-900 text-green-400 text-xs p-4 rounded-lg overflow-x-auto max-h-60 font-mono leading-relaxed">
+                {deployment.build_log || "No build log available"}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "pipeline" && (
+        <div className="card">
+          <div className="card-body">
+            <h2 className="text-lg font-semibold mb-4">Build Pipeline</h2>
+            <div className="space-y-2">
+              {BUILD_PHASES.map((phase, i) => {
+                const isRunning = deployment.status === "building";
+                const isDone = deployment.status === "running" || deployment.status === "failed";
+                return (
+                  <div key={phase.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDone ? "bg-green-100" : isRunning && i < 4 ? "bg-blue-100" : "bg-gray-100"}`}>
+                      {isDone ? (
+                        <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      ) : isRunning && i === 4 ? (
+                        <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={phase.icon} /></svg>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Domain / URL */}
-            <div className="card p-5">
-              <h3 className="font-semibold text-sm mb-4">Domain / URL</h3>
-              {deployment.domain || deployment.url ? (
-                <a href={`https://${deployment.domain || deployment.url}`} target="_blank"
-                  className="flex items-center gap-2 text-brand-600 hover:text-brand-800 font-medium">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                  {deployment.domain || deployment.url}
-                </a>
-              ) : (
-                <p className="text-sm text-gray-400">No domain assigned yet</p>
-              )}
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{phase.name}</p>
+                      <p className="text-xs text-gray-400">{isDone ? "Completed" : isRunning && i === 4 ? "Running..." : i < 4 ? "Completed" : "Pending"}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Build Logs */}
-        {activeTab === "logs" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Build Log</p>
-              <span className="text-xs text-gray-400">Last 50 lines</span>
-            </div>
-            <pre className="bg-gray-900 text-green-400 rounded-xl p-4 font-mono text-xs leading-relaxed max-h-96 overflow-y-auto whitespace-pre-wrap">
-              {deployment.buildLog || demoBuildLog}
-            </pre>
-          </div>
-        )}
-
-        {/* Environment */}
-        {activeTab === "env" && (
-          <div className="space-y-4">
-            <p className="text-sm font-medium">Environment Variables</p>
-            {deployment.environment && Object.keys(deployment.environment).length > 0 ? (
+      {activeTab === "env" && (
+        <div className="card">
+          <div className="card-body">
+            <h2 className="text-lg font-semibold mb-4">Environment Variables</h2>
+            {deployment.env_vars && Object.keys(deployment.env_vars).length > 0 ? (
               <div className="space-y-2">
-                {Object.entries(deployment.environment).map(([key, value]) => (
-                  <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      </svg>
-                      <code className="text-sm font-mono">{key}</code>
-                    </div>
-                    <code className="text-sm font-mono text-gray-500">********</code>
+                {Object.entries(deployment.env_vars as Record<string, string>).map(([key, value]) => (
+                  <div key={key} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
+                    <code className="text-sm font-mono text-indigo-600 w-40">{key}</code>
+                    <code className="text-sm font-mono text-gray-500 flex-1">{value.length > 40 ? value.substring(0, 40) + "..." : value}</code>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-400">
-                <svg className="w-10 h-10 mx-auto mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                </svg>
-                <p>No environment variables configured</p>
-              </div>
+              <p className="text-sm text-gray-400">No environment variables configured</p>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,14 +1,5 @@
-"use client";
+import DeploymentDetailPage from "./content";
 
-import dynamic from "next/dynamic";
-import { Suspense } from "react";
-
-const Content = dynamic(() => import("./content"), { ssr: false });
-
-export default function DeploymentDetailPage() {
-  return (
-    <Suspense fallback={<div className="text-center py-12 text-gray-400">Loading...</div>}>
-      <Content />
-    </Suspense>
-  );
+export default function Page() {
+  return <DeploymentDetailPage />;
 }
