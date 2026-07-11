@@ -33,9 +33,12 @@ export default function EnvVarsPage() {
   const [activeTab, setActiveTab] = useState<'all' | EnvScope>('all');
 
   const loadDeployments = () => {
-    fetch('/api/deployments').then(r => r.json()).then(d => {
-      setDeployments(d.deployments || []);
-    }).catch(() => {});
+    Promise.all([
+      fetch('/api/deployments').then(r => r.json()).catch(() => ({ deployments: [] })),
+      fetch('/api/webhook-deployments').then(r => r.json()).catch(() => ({ deployments: [] })),
+    ]).then(([reg, wh]) => {
+      setDeployments([...(wh.deployments || []), ...(reg.deployments || [])]);
+    });
   };
   useEffect(() => { loadDeployments(); }, []);
 
@@ -43,30 +46,41 @@ export default function EnvVarsPage() {
     if (selectedDeploymentId === 'global') {
       const stored = localStorage.getItem('env-vars-global');
       setEnvVars(stored ? JSON.parse(stored) : []);
-    } else {
-      fetch(`/api/deployments/${selectedDeploymentId}/env`).then(r => r.json()).then(d => {
+      setLoading(false);
+      return;
+    }
+    fetch(`/api/deployments/${selectedDeploymentId}/env`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => {
         const vars = d.env_vars || {};
         setEnvVars(Object.entries(vars).map(([key, value]) => ({
           key, value: value as string, scope: 'all' as EnvScope, targets: [],
         })));
-      }).catch(() => {});
-    }
-    setLoading(false);
+        setLoading(false);
+      })
+      .catch(() => {
+        const stored = localStorage.getItem(`env-vars-${selectedDeploymentId}`);
+        setEnvVars(stored ? JSON.parse(stored) : []);
+        setLoading(false);
+      });
   };
   useEffect(() => { loadEnvVars(); }, [selectedDeploymentId]);
 
-  const saveEnvVars = (vars: EnvVar[]) => {
+  const saveEnvVars = async (vars: EnvVar[]) => {
     setEnvVars(vars);
+    const obj: Record<string, string> = {};
+    vars.forEach(v => { obj[v.key] = v.value; });
     if (selectedDeploymentId === 'global') {
       localStorage.setItem('env-vars-global', JSON.stringify(vars));
     } else {
-      const obj: Record<string, string> = {};
-      vars.forEach(v => { obj[v.key] = v.value; });
-      fetch(`/api/deployments/${selectedDeploymentId}/env`, {
+      const ok = await fetch(`/api/deployments/${selectedDeploymentId}/env`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(obj),
-      }).catch(() => {});
+      }).then(r => r.ok).catch(() => false);
+      if (!ok) {
+        localStorage.setItem(`env-vars-${selectedDeploymentId}`, JSON.stringify(vars));
+      }
     }
   };
 

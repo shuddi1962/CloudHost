@@ -22,6 +22,8 @@ const typeStyles: Record<string, string> = {
 
 function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void }) {
   const [open, setOpen] = useState(false);
+  const [domainPrompt, setDomainPrompt] = useState(false);
+  const [domainInput, setDomainInput] = useState("");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,46 +34,153 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  const getDomain = () => dep.domain || `https://${dep.id?.substring(0, 8)}.cloudhost.app`;
+
   const doAction = async (action: string) => {
     setOpen(false);
     const token = localStorage.getItem("token");
+    const isWebhook = dep.type === 'auto' || dep.type === undefined;
+
     switch (action) {
-      case "redeploy":
+      case "visit": {
+        const url = getDomain();
+        window.open(url.startsWith('http') ? url : `https://${url}`, '_blank');
+        break;
+      }
+      case "redeploy": {
         try {
-          await fetch(`http://localhost:3001/api/deployments/${dep.id}/deploy`, {
-            method: "POST", headers: { Authorization: `Bearer ${token}` },
-          });
+          if (isWebhook) {
+            await fetch("/api/cicd/webhook", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                repository: dep.repository,
+                ref: `refs/heads/${dep.branch || 'main'}`,
+                after: dep.commit_sha,
+                head_commit: { message: dep.commit_message || 'Redeploy' },
+              }),
+            });
+          } else {
+            await fetch(`http://localhost:3001/api/deployments/${dep.id}/deploy`, {
+              method: "POST", headers: { Authorization: `Bearer ${token}` },
+            });
+          }
           onRefresh();
-        } catch { alert("Redeploy triggered (demo mode)"); }
+          break;
+        } catch { alert("Redeploy triggered (demo mode)"); onRefresh(); break; }
+      }
+      case "rollback": {
+        try {
+          const res = await fetch(`/api/deployments/${dep.id}/history`);
+          const data = await res.json();
+          const snapshots = data.snapshots || data;
+          if (Array.isArray(snapshots) && snapshots.length > 1) {
+            const prev = snapshots[1];
+            await fetch(`/api/deployments/${dep.id}/rollback`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ snapshotId: prev.id || prev.snapshot_id }),
+            });
+            alert(`Rolled back to ${prev.snapshot_id || 'previous version'}`);
+          } else {
+            alert("No previous snapshot available for rollback");
+          }
+        } catch {
+          alert("Rollback initiated — reverting to previous deployment (demo mode)");
+        }
+        onRefresh();
         break;
-      case "rollback":
-        alert("Rollback initiated — reverting to previous deployment");
+      }
+      case "promote": {
+        try {
+          if (isWebhook) {
+            await fetch(`/api/webhook-deployments/${dep.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: "ready" }),
+            });
+          } else {
+            await fetch(`http://localhost:3001/api/deployments/${dep.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ status: "running", domain: dep.domain?.replace('preview.', '') || dep.domain }),
+            });
+          }
+          alert("Promoted to production");
+        } catch { alert("Promoted to production (demo mode)"); }
+        onRefresh();
         break;
-      case "promote":
-        alert("Promoted to production");
+      }
+      case "view-source": {
+        if (dep.repository) {
+          const repoUrl = `https://github.com/${dep.repository}`;
+          window.open(repoUrl, '_blank');
+        } else if (dep.url || dep.domain) {
+          window.open(getDomain(), '_blank');
+        } else {
+          alert("Source URL not available for this deployment");
+        }
         break;
-      case "copy-url":
-        await navigator.clipboard.writeText(dep.domain || `https://${dep.id?.substring(0, 8)}.cloudhost.app`);
+      }
+      case "copy-url": {
+        const url = getDomain();
+        await navigator.clipboard.writeText(url);
         break;
-      case "delete":
+      }
+      case "assign-domain": {
+        setDomainPrompt(true);
+        setDomainInput(dep.domain || '');
+        break;
+      }
+      case "delete": {
         if (!confirm("Delete this deployment?")) return;
         try {
-          await fetch(`http://localhost:3001/api/deployments/${dep.id}`, {
-            method: "DELETE", headers: { Authorization: `Bearer ${token}` },
-          });
-          onRefresh();
-        } catch { onRefresh(); }
+          if (isWebhook) {
+            await fetch(`/api/webhook-deployments/${dep.id}`, { method: "DELETE" });
+          } else {
+            await fetch(`http://localhost:3001/api/deployments/${dep.id}`, {
+              method: "DELETE", headers: { Authorization: `Bearer ${token}` },
+            });
+          }
+        } catch { /* ignore */ }
+        onRefresh();
         break;
+      }
     }
   };
 
+  const saveDomain = async () => {
+    setDomainPrompt(false);
+    try {
+      const isWebhook = dep.type === 'auto' || dep.type === undefined;
+      if (isWebhook) {
+        await fetch(`/api/webhook-deployments/${dep.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ domain: domainInput }),
+        });
+      } else {
+        const token = localStorage.getItem("token");
+        await fetch(`http://localhost:3001/api/deployments/${dep.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ domain: domainInput }),
+        });
+      }
+    } catch { /* ignore */ }
+    onRefresh();
+  };
+
+  const visitUrl = dep.domain ? `https://${dep.domain}` : null;
+  const sourceUrl = dep.repository ? `https://github.com/${dep.repository}` : null;
+
   const items = [
-    { key: "visit", label: "Visit", icon: "M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14", href: dep.domain ? `https://${dep.domain}` : null },
+    ...(visitUrl ? [{ key: "visit", label: "Visit", icon: "M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14", href: visitUrl }] : [{ key: "visit-action", label: "Visit", icon: "M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" }]),
     { key: "inspect", label: "Inspect Deployment", icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z", href: `/dashboard/deployments/${dep.id}` },
     { key: "redeploy", label: "Redeploy", icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" },
     { key: "rollback", label: "Instant Rollback", icon: "M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" },
     { key: "promote", label: "Promote", icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" },
-    { key: "view-source", label: "View Source", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" },
+    ...(sourceUrl ? [{ key: "view-source", label: "View Source", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4", href: sourceUrl }] : [{ key: "view-source-action", label: "View Source", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" }]),
     { key: "copy-url", label: "Copy URL", icon: "M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" },
     { key: "assign-domain", label: "Assign Domain", icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" },
     { key: "divider-1", divider: true },
@@ -93,7 +202,7 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
             if (item.divider) return <div key={item.key} className="border-t border-gray-100 my-1" />;
             if (item.href) {
               return (
-                <Link key={item.key} href={item.href} onClick={() => setOpen(false)}
+                <Link key={item.key} href={item.href} onClick={() => setOpen(false)} target={item.href.startsWith('http') ? '_blank' : undefined}
                   className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                   <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon!} />
@@ -114,6 +223,22 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
               </button>
             );
           })}
+        </div>
+      )}
+
+      {domainPrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30" onClick={() => setDomainPrompt(false)}>
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold mb-2">Assign Custom Domain</h3>
+            <p className="text-sm text-gray-500 mb-4">Enter a custom domain for this deployment</p>
+            <input value={domainInput} onChange={e => setDomainInput(e.target.value)}
+              placeholder="myapp.example.com"
+              className="input-field w-full mb-4 font-mono text-sm" autoFocus />
+            <div className="flex items-center justify-end gap-3">
+              <button onClick={() => setDomainPrompt(false)} className="btn-secondary text-sm">Cancel</button>
+              <button onClick={saveDomain} className="btn-primary text-sm">Save Domain</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
