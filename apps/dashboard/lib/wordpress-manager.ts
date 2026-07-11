@@ -79,8 +79,9 @@ export class WordPressManager {
       setTimeout(async () => {
         const { createClient } = await import('@/lib/supabase-server');
         const supabase = createClient();
+        const { data: existing } = await supabase.from('deployments').select('build_log').eq('id', site.id).single();
         await supabase.from('deployments').update({
-          build_log: supabase.rpc?.('concat', { a: '', b: `${step.msg}\n` }) ? undefined : undefined,
+          build_log: (existing?.build_log || '') + `${step.msg}\n`,
         }).eq('id', site.id);
       }, totalDelay);
     }
