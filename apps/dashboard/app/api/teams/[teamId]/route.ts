@@ -8,7 +8,7 @@ export async function GET(request: NextRequest, { params }: { params: { teamId: 
     const { data: membership } = await supabase.from("team_members").select("id").eq("team_id", params.teamId).eq("user_id", userId).maybeSingle();
     const { data: team } = await supabase.from("teams").select("*").eq("id", params.teamId).eq("owner_id", userId).maybeSingle();
     if (!team && !membership) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    const { data } = await supabase.from("teams").select("*").eq("id", params.teamId").single();
+    const { data } = await supabase.from("teams").select("*").eq("id", params.teamId).single();
     return NextResponse.json(data);
   } catch (e) { return handleApiError(e); }
 }
