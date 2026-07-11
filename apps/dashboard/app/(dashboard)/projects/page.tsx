@@ -101,7 +101,7 @@ export default function ProjectsPage() {
           {projects.map((project) => (
             <div key={project.id} className="card p-6 flex items-center justify-between hover:shadow-md transition-shadow">
               <div>
-                <Link href={`/dashboard/projects/${project.id}`} className="font-semibold text-lg hover:text-brand-600 transition-colors">
+                <Link href={`/projects/${project.id}`} className="font-semibold text-lg hover:text-brand-600 transition-colors">
                   {project.name}
                 </Link>
                 {project.description && <p className="text-sm text-gray-500 mt-1">{project.description}</p>}

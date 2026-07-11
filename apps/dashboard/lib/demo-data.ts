@@ -271,6 +271,7 @@ function findHandler(url: string, method: string, body?: any): Handler | null {
     // Projects
     "GET /api/projects": () => ({ status: 200, data: { projects: demoProjects } }),
     "POST /api/projects": () => ({ status: 201, data: { project: { id: uuid(), ...body, createdAt: new Date().toISOString() } } }),
+
     // Deployments
     "GET /api/deployments": () => ({ status: 200, data: { deployments: demoDeployments } }),
     "POST /api/deployments": () => ({ status: 201, data: { deployment: { id: uuid(), ...body, status: "running", url: `${body.name}.cloudhost.app`, createdAt: new Date().toISOString() } } }),
@@ -401,6 +402,16 @@ function findHandler(url: string, method: string, body?: any): Handler | null {
     return { status: 200, data: { sites: demoWordPress } };
   }
   if (path.match(/\/api\/edge-functions\/[^/]+$/)) {
+    return { status: 200, data: { success: true } };
+  }
+
+  // Project detail
+  if (path.match(/^\/api\/projects\/(?!provision)[^/]+$/) && method === "GET") {
+    const id = path.split("/")[3];
+    const proj = demoProjects.find(p => p.id === id);
+    return { status: 200, data: { project: proj || demoProjects[0] } };
+  }
+  if (path.match(/^\/api\/projects\/([^/]+)$/) && method === "DELETE") {
     return { status: 200, data: { success: true } };
   }
 

@@ -21,19 +21,25 @@ export default function DeploymentDetailPage() {
   ]);
 
   useEffect(() => {
+    if (!params?.id) return;
+    const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:3001/api/deployments/${params.id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then(r => r.json()).then(data => {
-      setDeployment(data.deployment);
-    }).finally(() => setLoading(false));
+    const headers = { Authorization: `Bearer ${token}` };
 
-    fetch(`http://localhost:3001/api/preview-deployments/deployment/${params.id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then(r => r.json()).then(data => {
-      setPreviews(data.previews || []);
-    });
-  }, [params.id]);
+    fetch(`http://localhost:3001/api/deployments/${id}`, { headers })
+      .then(r => r.json())
+      .then(data => setDeployment(data.deployment))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
+    fetch(`http://localhost:3001/api/preview-deployments/deployment/${id}`, { headers })
+      .then(r => r.json())
+      .then(data => setPreviews(data.previews || []))
+      .catch(() => {});
+  }, [params?.id]);
+
+  if (!params?.id) return null;
+  const depId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   if (loading) return <div className="text-center py-12 text-gray-400">Loading deployment...</div>;
   if (!deployment) return <div className="text-center py-12 text-gray-400">Deployment not found</div>;
@@ -58,7 +64,9 @@ export default function DeploymentDetailPage() {
         <div className="flex gap-2">
           <button onClick={async () => {
             const token = localStorage.getItem("token");
-            await fetch(`http://localhost:3001/api/deployments/${params.id}/deploy`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+            await fetch(`http://localhost:3001/api/deployments/${depId}/deploy`, {
+              method: "POST", headers: { Authorization: `Bearer ${token}` },
+            });
             alert("Deployment triggered!");
           }} className="btn-primary text-sm">Redeploy</button>
           <button className="btn-secondary text-sm">
@@ -160,7 +168,7 @@ export default function DeploymentDetailPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">Preview Deployments</p>
-                <Link href={`/deployments/preview?deploymentId=${params.id}`} className="btn-primary text-xs px-3 py-1.5">
+                <Link href={`/deployments/preview?deploymentId=${depId}`} className="btn-primary text-xs px-3 py-1.5">
                   + New Preview
                 </Link>
               </div>
