@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const plans = [
   { name: "VPS-1", cpu: "1 vCPU", ram: "1 GB", storage: "25 GB NVMe", transfer: "1 TB", price: "$5.99", badge: "Starter" },
@@ -14,9 +15,14 @@ export default function VpsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">VPS Servers</h1>
-        <p className="text-gray-500">Virtual private servers with full root access</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">VPS Servers</h1>
+          <p className="text-gray-500">Virtual private servers with full root access</p>
+        </div>
+        <Link href="/dashboard/vps/create" className="btn-primary">
+          Create Instance
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
