@@ -3,6 +3,31 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+const DEMO_ACCOUNTS: Record<string, { password: string; user: { id: string; email: string; name: string; isAdmin: boolean }; org: { id: string; name: string; slug: string; role: string } }> = {
+  "admin@cloudhost.com": {
+    password: "admin123",
+    user: { id: "demo-admin-001", email: "admin@cloudhost.com", name: "Admin User", isAdmin: true },
+    org: { id: "org-demo-001", name: "CloudHost Inc.", slug: "cloudhost", role: "owner" },
+  },
+  "user@cloudhost.com": {
+    password: "user123",
+    user: { id: "demo-user-001", email: "user@cloudhost.com", name: "John Customer", isAdmin: false },
+    org: { id: "org-demo-002", name: "Acme Corp", slug: "acme-corp", role: "member" },
+  },
+};
+
+function base64url(str: string) {
+  return btoa(str).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+}
+
+function fakeJwt(userId: string, email: string) {
+  const header = base64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const payload = base64url(JSON.stringify({ sub: userId, email, iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 86400 }));
+  return `${header}.${payload}.demo_signature`;
+}
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+
 export default function HomePage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -18,13 +43,22 @@ export default function HomePage() {
     setLoading(true);
     setError("");
 
+    const demouser = DEMO_ACCOUNTS[email];
+    if (isLogin && demouser && password === demouser.password) {
+      localStorage.setItem("token", fakeJwt(demouser.user.id, demouser.user.email));
+      localStorage.setItem("user", JSON.stringify(demouser.user));
+      localStorage.setItem("organizations", JSON.stringify([demouser.org]));
+      router.push("/dashboard");
+      return;
+    }
+
     const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
     const body = isLogin
       ? { email, password }
       : { email, password, name, organizationName: orgName };
 
     try {
-      const res = await fetch(`http://localhost:3001${endpoint}`, {
+      const res = await fetch(`${API_BASE || "http://localhost:3001"}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -187,10 +221,15 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-1">
             <p className="text-xs text-gray-400">
               CloudHost Platform v2.0 — All-in-One Cloud Platform
             </p>
+            <div className="pt-2 border-t border-gray-100 mt-2">
+              <p className="text-[11px] font-medium text-gray-500 mb-1">Demo Credentials</p>
+              <p className="text-[10px] text-gray-400">Admin: admin@cloudhost.com / admin123</p>
+              <p className="text-[10px] text-gray-400">User: user@cloudhost.com / user123</p>
+            </div>
           </div>
         </div>
       </div>
