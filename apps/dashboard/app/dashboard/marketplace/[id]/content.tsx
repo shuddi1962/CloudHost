@@ -22,15 +22,47 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [installing, setInstalling] = useState(false);
   const [installed, setInstalled] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [newRating, setNewRating] = useState(0);
+  const [reviewTitle, setReviewTitle] = useState("");
+  const [reviewText, setReviewText] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:3001/api/marketplace/apps/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+    const headers = { Authorization: `Bearer ${token}` };
+    fetch(`http://localhost:3001/api/marketplace/apps/${id}`, { headers })
       .then(r => r.json())
       .then(data => setApp(data.app || null))
       .catch(() => setApp(null))
       .finally(() => setLoading(false));
+    fetch(`http://localhost:3001/api/marketplace/reviews/${id}`, { headers })
+      .then(r => r.json())
+      .then(data => setReviews(data.reviews || []))
+      .catch(() => {});
   }, [id]);
+
+  const submitReview = async () => {
+    if (!newRating || !reviewText) return;
+    const token = localStorage.getItem("token");
+    const res = await fetch("http://localhost:3001/api/marketplace/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ appId: id, appName: app?.name, author: "You", rating: newRating, title: reviewTitle, text: reviewText }),
+    });
+    const data = await res.json();
+    setReviews(prev => [data.review, ...prev]);
+    setNewRating(0);
+    setReviewTitle("");
+    setReviewText("");
+  };
+
+  const relativeDate = (d: string) => {
+    const diff = Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
+    if (diff === 0) return "Today";
+    if (diff === 1) return "Yesterday";
+    if (diff < 30) return `${diff}d ago`;
+    return new Date(d).toLocaleDateString();
+  };
 
   const install = async () => {
     if (!app) return;
@@ -114,6 +146,68 @@ export default function ProductDetail() {
                   <span className="text-sm text-gray-700">{f}</span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Reviews */}
+          <div className="card">
+            <div className="card-header">
+              <h2 className="font-semibold">Customer Reviews ({reviews.length})</h2>
+            </div>
+            <div className="card-body space-y-4">
+              {reviews.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No reviews yet. Be the first to review!</p>}
+              {reviews.map((r: any) => (
+                <div key={r.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-medium text-gray-600">{r.author[0]}</span>
+                      </div>
+                      <span className="font-medium text-sm">{r.author}</span>
+                      <div className="flex items-center gap-0.5 text-amber-400">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <svg key={i} className={`w-3 h-3 ${i < r.rating ? "fill-current" : "fill-gray-300"}`} viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-gray-400">{relativeDate(r.createdAt)}</span>
+                  </div>
+                  {r.title && <p className="text-sm font-medium text-gray-800">{r.title}</p>}
+                  <p className="text-xs text-gray-600 mt-0.5">{r.text}</p>
+                  <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-400">
+                    <button className="hover:text-brand-600 transition-colors">Helpful ({r.helpful})</button>
+                  </div>
+                </div>
+              ))}
+              {/* Write a review */}
+              <details className="border-t border-gray-100 pt-4 group">
+                <summary className="text-sm font-medium text-brand-600 cursor-pointer hover:text-brand-700">Write a Review</summary>
+                <div className="mt-3 space-y-3">
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map(s => (
+                      <button key={s} onClick={() => setNewRating(s)}
+                        className={`w-6 h-6 ${s <= newRating ? "text-amber-400" : "text-gray-300"} hover:text-amber-400 transition-colors`}>
+                        <svg className="w-full h-full fill-current" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </button>
+                    ))}
+                    <span className="text-xs text-gray-400 ml-2">{["", "Poor", "Fair", "Good", "Very Good", "Excellent"][newRating]}</span>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Title</label>
+                    <input value={reviewTitle} onChange={e => setReviewTitle(e.target.value)} className="input-field text-sm" placeholder="Summarize your review" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Review</label>
+                    <textarea value={reviewText} onChange={e => setReviewText(e.target.value)} className="input-field h-20 text-sm" placeholder="Share your experience..." />
+                  </div>
+                  <button onClick={submitReview} disabled={!newRating || !reviewText}
+                    className="btn-primary text-sm">Submit Review</button>
+                </div>
+              </details>
             </div>
           </div>
 

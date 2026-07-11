@@ -108,6 +108,19 @@ const hostingerNav = [
   { href: "/dashboard/hostinger/educational-partnerships", label: "Edu Partnerships", icon: "M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" },
 ];
 
+const marketplaceNav = [
+  { href: "/dashboard/marketplace", label: "Browse Marketplace", icon: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" },
+  { href: "/dashboard/marketplace/instances", label: "My Instances", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
+  { href: "/dashboard/marketplace/subscriptions", label: "Subscriptions", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+  { href: "/dashboard/marketplace/analytics", label: "Seller Analytics", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
+  { href: "/dashboard/marketplace/my-apps", label: "My Apps", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
+  { href: "/dashboard/marketplace/sell", label: "Sell Products", icon: "M12 6v6m0 0v6m0-6h6m-6 0H6" },
+];
+
+const adminMarketplaceNav = [
+  { href: "/dashboard/admin/marketplace", label: "Marketplace Queue", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" },
+];
+
 const otherNav = [
   { href: "/dashboard/workflows", label: "Workflows", icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" },
   { href: "/dashboard/credentials", label: "Credentials", icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" },
@@ -208,7 +221,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <nav className="flex-1 overflow-y-auto p-4 space-y-1">
             {user.isSuperAdmin && renderNavGroup("Super Admin", superAdminNav, pathname)}
             {user.isAdmin && renderNavGroup("Admin", adminNav, pathname)}
+            {(user.isAdmin || user.isSuperAdmin) && renderNavGroup("Marketplace Admin", adminMarketplaceNav, pathname)}
             {renderNavGroup("General", topNav, pathname)}
+            {renderNavGroup("Marketplace", marketplaceNav, pathname)}
             {renderNavGroup("Hosting", hostingNav, pathname)}
             {renderNavGroup("Database", databaseNav, pathname)}
             {renderNavGroup("Network", networkNav, pathname)}

@@ -161,6 +161,71 @@ const demoMarketplaceInstallations = [
   { id: uuid(), appId: "demo-redis", appName: "Redis", status: "inactive", installedAt: daysAgo(10), version: "7.2", url: "" },
 ];
 
+const demoMarketplaceInstances = [
+  { id: uuid(), appId: "supabase", appName: "Supabase", type: "SaaS", status: "running", region: "us-east-1", cpu: "2 vCPU", memory: "4 GB", storage: "50 GB", ip: "203.0.113.101", url: "https://supabase.cloudhost.app", version: "1.2.0", createdAt: daysAgo(20), lastActive: hoursAgo(1), cost: "$0.50/hr" },
+  { id: uuid(), appId: "neon-serverless-postgres", appName: "Neon Postgres", type: "SaaS", status: "running", region: "eu-west-1", cpu: "1 vCPU", memory: "2 GB", storage: "20 GB", ip: "203.0.113.102", url: "https://neon.cloudhost.app", version: "2.0.1", createdAt: daysAgo(15), lastActive: hoursAgo(3), cost: "$0.25/hr" },
+  { id: uuid(), appId: "ollama", appName: "Ollama LLM", type: "Container", status: "stopped", region: "us-west-2", cpu: "4 vCPU", memory: "16 GB", storage: "100 GB", ip: "203.0.113.103", url: "", version: "0.3.0", createdAt: daysAgo(10), lastActive: daysAgo(2), cost: "$0.80/hr" },
+  { id: uuid(), appId: "redis-enterprise", appName: "Redis Enterprise", type: "Container", status: "running", region: "us-east-1", cpu: "2 vCPU", memory: "8 GB", storage: "30 GB", ip: "203.0.113.104", url: "https://redis.cloudhost.app", version: "7.2.4", createdAt: daysAgo(5), lastActive: hoursAgo(0), cost: "$0.35/hr" },
+  { id: uuid(), appId: "supabase", appName: "Supabase (Staging)", type: "SaaS", status: "provisioning", region: "eu-west-1", cpu: "1 vCPU", memory: "2 GB", storage: "10 GB", ip: "", url: "", version: "1.3.0-beta", createdAt: hoursAgo(1), lastActive: hoursAgo(1), cost: "$0.15/hr" },
+  { id: uuid(), appId: "docker-desktop", appName: "Docker Registry", type: "Container", status: "running", region: "us-east-1", cpu: "2 vCPU", memory: "4 GB", storage: "200 GB", ip: "203.0.113.105", url: "https://registry.cloudhost.app", version: "2.0", createdAt: daysAgo(3), lastActive: hoursAgo(0), cost: "$0.30/hr" },
+];
+
+const demoMarketplaceSubscriptions = [
+  { id: uuid(), appId: "supabase", appName: "Supabase", plan: "Pro", status: "active", billingPeriod: "monthly", amount: 25, currency: "USD", nextBilling: daysAgo(-15), startedAt: daysAgo(45), usage: { apiCalls: 125000, storageGB: 2.4, bandwidthGB: 45 }, autoRenew: true },
+  { id: uuid(), appId: "neon-serverless-postgres", appName: "Neon Postgres", plan: "Scale", status: "active", billingPeriod: "monthly", amount: 49, currency: "USD", nextBilling: daysAgo(-10), startedAt: daysAgo(30), usage: { apiCalls: 45000, storageGB: 8.2, bandwidthGB: 120 }, autoRenew: true },
+  { id: uuid(), appId: "datadog", appName: "Datadog", plan: "Pro", status: "active", billingPeriod: "monthly", amount: 15, currency: "USD", nextBilling: daysAgo(-5), startedAt: daysAgo(60), usage: {}, autoRenew: true },
+  { id: uuid(), appId: "github-actions", appName: "GitHub Actions", plan: "Team", status: "active", billingPeriod: "monthly", amount: 4, currency: "USD", nextBilling: daysAgo(-20), startedAt: daysAgo(90), usage: {}, autoRenew: true },
+  { id: uuid(), appId: "ollama", appName: "Ollama LLM", plan: "Free", status: "past_due", billingPeriod: "monthly", amount: 0, currency: "USD", nextBilling: daysAgo(-3), startedAt: daysAgo(10), usage: {}, autoRenew: true },
+  { id: uuid(), appId: "sentry", appName: "Sentry", plan: "Team", status: "canceled", billingPeriod: "monthly", amount: 26, currency: "USD", nextBilling: daysAgo(-30), startedAt: daysAgo(120), usage: {}, autoRenew: false, canceledAt: daysAgo(30) },
+];
+
+const demoMarketplaceReviews = [
+  { id: uuid(), appId: "supabase", appName: "Supabase", author: "Alex K.", rating: 5, title: "Best backend platform", text: "Supabase has completely replaced Firebase for our stack. The Postgres integration is seamless and the realtime features are incredible.", createdAt: daysAgo(5), helpful: 23 },
+  { id: uuid(), appId: "supabase", appName: "Supabase", author: "Maria G.", rating: 4, title: "Great but needs better docs", text: "Overall a fantastic product. The auto-generated APIs save so much time. Documentation could be more comprehensive for advanced use cases.", createdAt: daysAgo(12), helpful: 8 },
+  { id: uuid(), appId: "supabase", appName: "Supabase", author: "David R.", rating: 5, title: "Game changer for indie devs", text: "As a solo developer, Supabase lets me ship features that would normally require a full backend team.", createdAt: daysAgo(20), helpful: 45 },
+  { id: uuid(), appId: "datadog", appName: "Datadog", author: "Sarah L.", rating: 4, title: "Solid monitoring platform", text: "Datadog provides excellent visibility into our infrastructure. The APM traces are particularly useful for debugging performance issues.", createdAt: daysAgo(3), helpful: 12 },
+  { id: uuid(), appId: "datadog", appName: "Datadog", author: "Mike T.", rating: 5, title: "Enterprise-grade monitoring", text: "We migrated from Grafana + Prometheus and it was worth every penny. The integrations library is massive.", createdAt: daysAgo(8), helpful: 19 },
+  { id: uuid(), appId: "neon-serverless-postgres", appName: "Neon Postgres", author: "Jenny W.", rating: 5, title: "Branching is a superpower", text: "Neon's database branching has transformed our development workflow. Each PR gets its own database branch.", createdAt: daysAgo(2), helpful: 34 },
+  { id: uuid(), appId: "neon-serverless-postgres", appName: "Neon Postgres", author: "Tom H.", rating: 4, title: "Great serverless Postgres", text: "Instantly provisioning databases is amazing for dev environments. Production performance has been solid too.", createdAt: daysAgo(15), helpful: 7 },
+  { id: uuid(), appId: "ollama", appName: "Ollama LLM", author: "Chris M.", rating: 5, title: "Local LLMs made easy", text: "Ollama is the easiest way to run LLMs locally or on your own infrastructure. The API is simple and it just works.", createdAt: daysAgo(7), helpful: 28 },
+  { id: uuid(), appId: "langchain", appName: "LangChain", author: "Priya S.", rating: 4, title: "Powerful but complex", text: "LangChain is incredibly powerful but the learning curve is steep. The composability is unmatched though.", createdAt: daysAgo(10), helpful: 15 },
+  { id: uuid(), appId: "mongodb-atlas", appName: "MongoDB Atlas", author: "Raj P.", rating: 5, title: "Best managed MongoDB", text: "Atlas takes the pain out of MongoDB operations. Auto-scaling, backups, and global clusters just work.", createdAt: daysAgo(4), helpful: 21 },
+];
+
+const demoMarketplaceAnalytics: any = {
+  totalImpressions: 245000, totalClicks: 12800, totalInstalls: 234, totalRevenue: 1870,
+  monthlyData: [
+    { month: "Jan", impressions: 32000, clicks: 1800, installs: 28, revenue: 210 },
+    { month: "Feb", impressions: 35000, clicks: 2100, installs: 35, revenue: 280 },
+    { month: "Mar", impressions: 42000, clicks: 2400, installs: 42, revenue: 340 },
+    { month: "Apr", impressions: 38000, clicks: 2200, installs: 38, revenue: 310 },
+    { month: "May", impressions: 45000, clicks: 2600, installs: 45, revenue: 360 },
+    { month: "Jun", impressions: 53000, clicks: 3200, installs: 56, revenue: 470 },
+  ],
+  topProducts: [
+    { name: "Supabase", installs: 45, revenue: 1125, conversion: 3.2 },
+    { name: "Cloudflare Workers", installs: 38, revenue: 0, conversion: 2.8 },
+    { name: "Neon Postgres", installs: 32, revenue: 1568, conversion: 4.1 },
+    { name: "Ollama", installs: 28, revenue: 0, conversion: 5.3 },
+    { name: "Datadog", installs: 22, revenue: 330, conversion: 1.9 },
+  ],
+  byCategory: [
+    { name: "Databases", impressions: 85000, clicks: 4200, installs: 78, revenue: 2100 },
+    { name: "AI/ML", impressions: 62000, clicks: 3400, installs: 55, revenue: 890 },
+    { name: "DevOps", impressions: 48000, clicks: 2600, installs: 42, revenue: 1200 },
+    { name: "Security", impressions: 35000, clicks: 1800, installs: 34, revenue: 2800 },
+    { name: "Storage", impressions: 15000, clicks: 800, installs: 25, revenue: 450 },
+  ],
+};
+
+const demoMarketplaceAdminQueue = [
+  { id: uuid(), sellerName: "Jane Smith", sellerEmail: "jane@devtoolify.com", company: "DevToolify Inc", productName: "CodeReview AI", productType: "SaaS", category: "DevOps", description: "AI-powered code review assistant that integrates with GitHub and GitLab. Automatically reviews pull requests for bugs, security issues, and best practices.", submittedAt: daysAgo(2), status: "pending" },
+  { id: uuid(), sellerName: "Mike Chen", sellerEmail: "mike@cloudsecure.com", company: "CloudSecure", productName: "CloudSecure WAF", productType: "Container", category: "Security", description: "Web application firewall with AI-driven threat detection. Protects against OWASP Top 10, DDoS, and API abuse.", submittedAt: daysAgo(4), status: "pending" },
+  { id: uuid(), sellerName: "Sarah Williams", sellerEmail: "sarah@dataflow.io", company: "DataFlow Inc", productName: "DataFlow Pipeline", productType: "Data", category: "Data Products", description: "Managed data pipeline service for ETL, streaming, and batch processing. Supports 50+ connectors and real-time transformations.", submittedAt: daysAgo(7), status: "under_review" },
+  { id: uuid(), sellerName: "Alex Johnson", sellerEmail: "alex@opsgenie.com", company: "OpsGenie", productName: "OpsGenie Alerter", productType: "SaaS", category: "Cloud Operations", description: "Cloud operations alerting platform that aggregates alerts from monitoring tools and routes them to the right team.", submittedAt: daysAgo(14), status: "approved" },
+  { id: uuid(), sellerName: "Emily Davis", sellerEmail: "emily@analytix.com", company: "Analytix", productName: "Analytix Dashboard", productType: "SaaS", category: "Business Applications", description: "Business intelligence dashboard with drag-and-drop visualization, SQL queries, and automated report scheduling.", submittedAt: daysAgo(21), status: "rejected" },
+];
+
 const demoEmailAccounts = [
   { id: uuid(), email: "admin@acme.com", status: "active", quota: 2048, forwardTo: "admin.personal@gmail.com", createdAt: daysAgo(45) },
   { id: uuid(), email: "support@acme.com", status: "active", quota: 1024, forwardTo: "", createdAt: daysAgo(30) },
@@ -354,6 +419,15 @@ function findHandler(url: string, method: string, body?: any): Handler | null {
     "GET /api/marketplace/apps": () => ({ status: 200, data: { apps: demoMarketplaceApps, categories: marketplaceCategories, deliveryMethods } }),
     "GET /api/marketplace/installations": () => ({ status: 200, data: { installations: demoMarketplaceInstallations } }),
     "POST /api/marketplace/install": () => ({ status: 201, data: { installation: { id: uuid(), ...body, status: "active", installedAt: new Date().toISOString(), url: `${body.name}.cloudhost.app` } } }),
+    "GET /api/marketplace/instances": () => ({ status: 200, data: { instances: demoMarketplaceInstances } }),
+    "POST /api/marketplace/instances/provision": () => ({ status: 201, data: { instance: { id: uuid(), ...body, status: "provisioning", region: "us-east-1", ip: "", createdAt: new Date().toISOString(), lastActive: new Date().toISOString() } } }),
+    "GET /api/marketplace/subscriptions": () => ({ status: 200, data: { subscriptions: demoMarketplaceSubscriptions } }),
+    "POST /api/marketplace/reviews": () => ({ status: 201, data: { review: { id: uuid(), ...body, createdAt: new Date().toISOString(), helpful: 0 } } }),
+    "GET /api/marketplace/analytics": () => ({ status: 200, data: { analytics: demoMarketplaceAnalytics } }),
+    "GET /api/marketplace/admin/queue": () => ({ status: 200, data: { queue: demoMarketplaceAdminQueue } }),
+    "POST /api/marketplace/admin/queue/:id/approve": () => ({ status: 200, data: { success: true, status: "approved" } }),
+    "POST /api/marketplace/admin/queue/:id/reject": () => ({ status: 200, data: { success: true, status: "rejected" } }),
+    "POST /api/marketplace/seller/register": () => ({ status: 201, data: { submission: { id: uuid(), ...body, status: "pending", submittedAt: new Date().toISOString() } } }),
     // Hosting
     "GET /api/hosting/account/00000000-0000-0000-0000-000000000000": () => ({ status: 200, data: { account: demoHostingAccounts[0] } }),
     "GET /api/hosting/account/00000000-0000-0000-0000-000000000000/cron": () => ({ status: 200, data: { cronJobs: demoCronJobs } }),
@@ -384,11 +458,55 @@ function findHandler(url: string, method: string, body?: any): Handler | null {
   if (exactMatch) return exactMatch();
 
   // Pattern matching for dynamic URLs
-  if (path.match(/^\/api\/marketplace\/apps\/.+/) && method === "GET") {
+  // --- Marketplace API dynamic routes ---
+
+  // Product detail
+  if (path.match(/^\/api\/marketplace\/apps\/[^/]+$/) && method === "GET") {
     const id = path.split("/")[4];
     const app = demoMarketplaceApps.find(a => a.id === id);
     if (app) return { status: 200, data: { app } };
     return { status: 404, data: { error: "App not found" } };
+  }
+
+  // Reviews for a specific app
+  if (path.match(/^\/api\/marketplace\/reviews\/[^/]+$/) && method === "GET") {
+    const appId = path.split("/")[4];
+    const reviews = demoMarketplaceReviews.filter(r => r.appId === appId);
+    return { status: 200, data: { reviews } };
+  }
+
+  // Instance detail
+  if (path.match(/^\/api\/marketplace\/instances\/[^/]+$/) && method === "GET") {
+    const id = path.split("/")[4];
+    const instance = demoMarketplaceInstances.find(i => i.id === id);
+    if (instance) return { status: 200, data: { instance } };
+    return { status: 404, data: { error: "Instance not found" } };
+  }
+
+  // Instance actions (stop/start/restart)
+  if (path.match(/^\/api\/marketplace\/instances\/[^/]+\/(stop|start|restart)$/) && method === "POST") {
+    return { status: 200, data: { success: true, message: "Action completed" } };
+  }
+
+  // Instance logs
+  if (path.match(/^\/api\/marketplace\/instances\/[^/]+\/logs$/) && method === "GET") {
+    return { status: 200, data: { logs: [
+      { time: hoursAgo(0.5), message: "Health check passed" },
+      { time: hoursAgo(1), message: "Request handled: GET /api/status" },
+      { time: hoursAgo(2), message: "Connection pool at 45% capacity" },
+      { time: hoursAgo(4), message: "Instance started successfully" },
+    ] } };
+  }
+
+  // Subscription cancel
+  if (path.match(/^\/api\/marketplace\/subscriptions\/[^/]+\/cancel$/) && method === "POST") {
+    return { status: 200, data: { success: true, status: "canceled", canceledAt: new Date().toISOString() } };
+  }
+
+  // Admin queue actions
+  if (path.match(/^\/api\/marketplace\/admin\/queue\/[^/]+\/(approve|reject)$/) && method === "POST") {
+    const action = path.split("/").pop();
+    return { status: 200, data: { success: true, status: action, message: `Product ${action === "approve" ? "approved" : "rejected"}` } };
   }
   if (path.startsWith("/api/deployments/") && method === "GET") {
     const id = path.split("/")[3];
