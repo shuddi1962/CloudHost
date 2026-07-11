@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const frameworks = [
   { value: "custom", label: "Custom" },
@@ -72,6 +73,11 @@ export default function CreateDeploymentPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"upload" | "quick-install" | "git">("upload");
+  const [gitAccounts, setGitAccounts] = useState<any[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<any | null>(null);
+  const [accountRepos, setAccountRepos] = useState<any[]>([]);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+  const [repoSearch, setRepoSearch] = useState("");
   const [dragging, setDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number; type: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -101,6 +107,59 @@ export default function CreateDeploymentPage() {
   const [gitBranch, setGitBranch] = useState("main");
   const [gitAuth, setGitAuth] = useState<"ssh" | "token">("token");
   const [gitToken, setGitToken] = useState("");
+  const [autoDeploy, setAutoDeploy] = useState(false);
+  const [selectedRepoFull, setSelectedRepoFull] = useState("");
+
+  useEffect(() => {
+    fetch('/api/git/accounts').then(r => r.json()).then(d => {
+      const accs = d.accounts || [];
+      setGitAccounts(accs);
+      const params = new URLSearchParams(window.location.search);
+      const repoParam = params.get('repo');
+      const branchParam = params.get('branch');
+      const gitAccountParam = params.get('gitAccount');
+      if (repoParam) {
+        setActiveTab('git');
+        setGitUrl(`https://github.com/${repoParam}.git`);
+        if (branchParam) setGitBranch(branchParam);
+        if (form.name === '') {
+          const nameFromRepo = repoParam.split('/').pop() || '';
+          setForm(f => ({ ...f, name: nameFromRepo }));
+        }
+        if (gitAccountParam) {
+          const match = accs.find((a: any) => a.id === gitAccountParam);
+          if (match) {
+            setSelectedAccount(match);
+            loadRepos(match.id);
+          }
+        }
+      }
+    });
+  }, []);
+
+  const loadRepos = async (accountId: string) => {
+    setLoadingRepos(true);
+    const res = await fetch(`/api/git/accounts/${accountId}/repos`);
+    const data = await res.json();
+    setAccountRepos(data.repos || []);
+    setLoadingRepos(false);
+  };
+
+  const selectAccount = async (acc: any) => {
+    setSelectedAccount(acc);
+    setRepoSearch("");
+    if (acc) await loadRepos(acc.id);
+    else setAccountRepos([]);
+  };
+
+  const selectRepo = (repo: any) => {
+    setGitUrl(`https://github.com/${repo.full_name}.git`);
+    setGitBranch(repo.default_branch);
+    setSelectedRepoFull(repo.full_name);
+    if (form.name === '' || form.name === repo.name) {
+      setForm(f => ({ ...f, name: repo.name }));
+    }
+  };
 
   const updateFramework = (fw: string) => {
     setForm({ ...form, framework: fw });
@@ -258,6 +317,25 @@ export default function CreateDeploymentPage() {
         }).catch(() => {});
       }
 
+      if (activeTab === "git" && autoDeploy && selectedRepoFull) {
+        const provider = gitUrl.includes("github") ? "github" : "gitlab";
+        await fetch("/api/cicd/connections", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name,
+            provider,
+            repository: selectedRepoFull,
+            branch: gitBranch,
+            build_command: buildSettings.buildCommand,
+            output_directory: buildSettings.outputDirectory,
+            install_command: buildSettings.installCommand,
+            node_version: buildSettings.nodeVersion,
+            auto_deploy: true,
+          }),
+        }).catch(() => {});
+      }
+
       router.push("/dashboard/deployments");
     } catch {
       router.push("/dashboard/deployments");
@@ -370,37 +448,114 @@ export default function CreateDeploymentPage() {
 
         {/* Git Repository Tab */}
         {activeTab === "git" && (
-          <div className="card p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Git Repository URL</label>
-              <input value={gitUrl} onChange={e => setGitUrl(e.target.value)}
-                className="input-field font-mono" placeholder="https://github.com/user/repo.git" />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Branch</label>
-                <input value={gitBranch} onChange={e => setGitBranch(e.target.value)}
-                  className="input-field font-mono" placeholder="main" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Auth Method</label>
-                <select value={gitAuth} onChange={e => setGitAuth(e.target.value as any)} className="input-field">
-                  <option value="token">Personal Access Token</option>
-                  <option value="ssh">SSH Key</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                {gitAuth === "token" ? "Personal Access Token" : "SSH Private Key"}
-              </label>
-              {gitAuth === "token" ? (
-                <input value={gitToken} onChange={e => setGitToken(e.target.value)}
-                  className="input-field font-mono" type="password" placeholder="ghp_..." />
+          <div className="space-y-6">
+            {/* Import from Connected Account */}
+            <div className="card p-6">
+              <h3 className="font-semibold mb-4 flex items-center gap-2">
+                <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                Import from Connected Account
+              </h3>
+              {gitAccounts.length === 0 ? (
+                <div className="text-center py-6 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-2">No Git accounts connected</p>
+                  <Link href="/dashboard/git/accounts" className="text-sm text-indigo-600 hover:underline font-medium">
+                    Connect a GitHub account
+                  </Link>
+                </div>
               ) : (
-                <textarea value={gitToken} onChange={e => setGitToken(e.target.value)}
-                  className="input-field font-mono text-xs" rows={4} placeholder="-----BEGIN OPENSSH PRIVATE KEY-----&#10;..." />
+                <>
+                  <div className="flex gap-2 mb-4 flex-wrap">
+                    {gitAccounts.map(acc => (
+                      <button key={acc.id} type="button" onClick={() => selectAccount(selectedAccount?.id === acc.id ? null : acc)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm border transition-colors ${
+                          selectedAccount?.id === acc.id ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                        }`}>
+                        <img src={acc.avatar_url} alt="" className="w-5 h-5 rounded-full" />
+                        {acc.username}
+                      </button>
+                    ))}
+                  </div>
+
+                  {selectedAccount && (
+                    <div>
+                      <input value={repoSearch} onChange={e => setRepoSearch(e.target.value)}
+                        placeholder="Search repositories..." className="w-full border rounded-lg px-4 py-2 text-sm mb-3" />
+                      {loadingRepos ? (
+                        <div className="animate-pulse space-y-2">{[1,2,3].map(i => <div key={i} className="h-10 bg-gray-100 rounded" />)}</div>
+                      ) : (
+                        <div className="max-h-64 overflow-y-auto space-y-1 border rounded-lg p-1">
+                          {accountRepos
+                            .filter((r: any) => r.full_name.toLowerCase().includes(repoSearch.toLowerCase()))
+                            .map((repo: any) => (
+                              <button key={repo.id} type="button" onClick={() => selectRepo(repo)}
+                                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+                                  gitUrl === `https://github.com/${repo.full_name}.git` ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50 text-gray-700'
+                                }`}>
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <svg className="w-4 h-4 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                                  <span className="truncate">{repo.full_name}</span>
+                                  {repo.private && (
+                                    <svg className="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                  )}
+                                </div>
+                                <span className="text-xs text-gray-400 flex-shrink-0">{repo.default_branch}</span>
+                              </button>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
+            </div>
+
+            {/* Manual Git Entry */}
+            <div className="card p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-px flex-1 bg-gray-200" />
+                <span className="text-xs text-gray-400 font-medium">Or enter manually</span>
+                <div className="h-px flex-1 bg-gray-200" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Git Repository URL</label>
+                <input value={gitUrl} onChange={e => setGitUrl(e.target.value)}
+                  className="input-field font-mono" placeholder="https://github.com/user/repo.git" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Branch</label>
+                  <input value={gitBranch} onChange={e => setGitBranch(e.target.value)}
+                    className="input-field font-mono" placeholder="main" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Auth Method</label>
+                  <select value={gitAuth} onChange={e => setGitAuth(e.target.value as any)} className="input-field">
+                    <option value="token">Personal Access Token</option>
+                    <option value="ssh">SSH Key</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {gitAuth === "token" ? "Personal Access Token" : "SSH Private Key"}
+                  </label>
+                  {gitAuth === "token" ? (
+                    <input value={gitToken} onChange={e => setGitToken(e.target.value)}
+                      className="input-field font-mono" type="password" placeholder="ghp_..." />
+                  ) : (
+                    <textarea value={gitToken} onChange={e => setGitToken(e.target.value)}
+                      className="input-field font-mono text-xs" rows={4} placeholder="-----BEGIN OPENSSH PRIVATE KEY-----&#10;..." />
+                  )}
+                </div>
+
+                <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                  <input type="checkbox" checked={autoDeploy} onChange={e => setAutoDeploy(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Enable auto-deploy on push</p>
+                    <p className="text-xs text-gray-500">Automatically deploy when changes are pushed to this branch</p>
+                  </div>
+                </label>
             </div>
           </div>
         )}

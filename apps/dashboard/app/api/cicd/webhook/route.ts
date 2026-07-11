@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { CICDManager } from "@/lib/cicd-manager";
 import { BuildRunner } from "@/lib/build-runner";
 import { RollbackManager } from "@/lib/rollback-manager";
+import { WebhookDeploymentStore } from "@/lib/webhook-deployment-store";
 
 export async function POST(req: NextRequest) {
   const provider = req.headers.get('x-github-event') ? 'github' : 'gitlab';
@@ -25,7 +26,9 @@ export async function POST(req: NextRequest) {
   const { connection } = result;
   const commitSha = payload.after?.substring(0, 7) || 'HEAD';
   const commitMsg = payload.head_commit?.message?.split('\n')[0] || 'Auto-deploy';
+  const branch = payload.ref?.replace('refs/heads/', '') || 'main';
   const deployId = `deploy-${connection.id}-${Date.now()}`;
+  const repoName = connection.repository.split('/').pop() || connection.repository;
 
   const runner = new BuildRunner(deployId);
   const buildConfig = {
@@ -56,6 +59,23 @@ export async function POST(req: NextRequest) {
 
   const build = await buildPromise;
 
+  const webhookDeploy = {
+    id: deployId,
+    name: repoName,
+    type: 'auto' as const,
+    framework: buildConfig.framework || 'node',
+    status: build.status === 'success' ? 'running' : 'failed',
+    domain: `https://${deployId.substring(0, 8)}.cloudhost.app`,
+    commit_sha: commitSha,
+    commit_message: commitMsg,
+    branch,
+    repository: connection.repository,
+    auto_deploy: true,
+    build_log: build.phases.map(p => p.log).join('\n'),
+    created: new Date().toISOString(),
+  };
+  WebhookDeploymentStore.add(webhookDeploy);
+
   return NextResponse.json({
     message: `Auto-deploy triggered for ${connection.repository}`,
     connection: connection.id,
@@ -64,7 +84,7 @@ export async function POST(req: NextRequest) {
       status: build.status,
       commit: commitSha,
       message: commitMsg,
-      url: `https://${deployId.substring(0, 8)}.cloudhost.app`,
+      url: webhookDeploy.domain,
     },
     build_log: build.phases.map(p => p.log).join('\n'),
   });

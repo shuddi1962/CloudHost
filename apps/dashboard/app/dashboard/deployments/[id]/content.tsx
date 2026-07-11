@@ -26,11 +26,44 @@ export default function DeploymentDetailPage() {
   useEffect(() => {
     if (!params?.id) return;
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
-    fetch(`/api/deployments/${id}`)
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(setDeployment)
-      .catch(() => {
-        // Demo fallback
+
+    const tryWebhookFallback = async () => {
+      const res = await fetch(`/api/webhook-deployments/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setDeployment({
+          ...data,
+          build_command: 'auto',
+          output_directory: '.',
+          node_version: '20',
+          install_command: 'npm install',
+          env_vars: { COMMIT_SHA: data.commit_sha },
+          created_at: data.created,
+          deployed_at: data.created,
+          container_id: `ch-${data.id?.substring(0, 8)}`,
+          region: 'us-east-1',
+          plan: 'starter',
+          git_repository: data.repository,
+          commit_sha: data.commit_sha,
+          commit_message: data.commit_message,
+          branch: data.branch,
+        });
+        return true;
+      }
+      return false;
+    };
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/deployments/${id}`);
+        if (res.ok) {
+          setDeployment(await res.json());
+          return;
+        }
+      } catch {}
+
+      const found = await tryWebhookFallback();
+      if (!found) {
         setDeployment({
           id, name: "My App", type: "git", framework: "nextjs", status: "running",
           domain: "my-app.cloudhost.app", region: "us-east-1", plan: "starter",
@@ -42,8 +75,8 @@ export default function DeploymentDetailPage() {
           deployed_at: new Date().toISOString(),
           container_id: "ch-a1b2c3d4",
         });
-      })
-      .finally(() => setLoading(false));
+      }
+    })().finally(() => setLoading(false));
   }, [params?.id]);
 
   const statusStyle = (status: string) => {
@@ -147,20 +180,24 @@ export default function DeploymentDetailPage() {
             <div className="card-body space-y-4">
               <h2 className="text-lg font-semibold">Deployment Details</h2>
               <div className="grid grid-cols-2 gap-4 text-sm">
-                {[
-                  ["Type", deployment.type],
-                  ["Framework", deployment.framework],
-                  ["Region", deployment.region],
-                  ["Plan", deployment.plan],
-                  ["Node Version", deployment.node_version],
-                  ["PHP Version", deployment.php_version],
-                  ["Build Command", deployment.build_command],
-                  ["Output Directory", deployment.output_directory],
-                  ["Install Command", deployment.install_command],
-                  ["Container ID", deployment.container_id || "-"],
-                  ["Created", deployment.created_at ? new Date(deployment.created_at).toLocaleString() : "-"],
-                  ["Deployed", deployment.deployed_at ? new Date(deployment.deployed_at).toLocaleString() : "Not yet"],
-                ].map(([label, value]) => (
+                  {[
+                    ["Type", deployment.type],
+                    ["Framework", deployment.framework],
+                    ["Region", deployment.region],
+                    ["Plan", deployment.plan],
+                    ["Repository", deployment.git_repository || deployment.repository || "-"],
+                    ["Branch", deployment.branch || "-"],
+                    ["Commit", deployment.commit_sha || "-"],
+                    ["Commit Message", deployment.commit_message || "-"],
+                    ["Node Version", deployment.node_version],
+                    ["PHP Version", deployment.php_version],
+                    ["Build Command", deployment.build_command],
+                    ["Output Directory", deployment.output_directory],
+                    ["Install Command", deployment.install_command],
+                    ["Container ID", deployment.container_id || "-"],
+                    ["Created", deployment.created_at ? new Date(deployment.created_at).toLocaleString() : "-"],
+                    ["Deployed", deployment.deployed_at ? new Date(deployment.deployed_at).toLocaleString() : "Not yet"],
+                  ].map(([label, value]) => (
                   <div key={label}>
                     <p className="text-gray-500 text-xs">{label}</p>
                     <p className="font-mono text-xs mt-0.5">{value || "-"}</p>
