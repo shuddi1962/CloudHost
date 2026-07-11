@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "../lib/supabase/client";
 
 const DEMO_ACCOUNTS: Record<string, { password: string; user: { id: string; email: string; name: string; isAdmin: boolean }; org: { id: string; name: string; slug: string; role: string } }> = {
   "admin@cloudhost.com": {
