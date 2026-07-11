@@ -105,12 +105,32 @@ export default function DeploymentDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 border-b border-gray-200">
-        {(["overview", "pipeline", "env"] as const).map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${activeTab === tab ? "border-indigo-600 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
-            {tab === "overview" ? "Overview" : tab === "pipeline" ? "Build Pipeline" : "Environment"}
-          </button>
-        ))}
+        {(["overview", "pipeline", "env", "logs", "history", "monitoring"] as const).map(tab => {
+          if (tab === "logs") return (
+            <button key={tab} onClick={() => router.push(`/dashboard/deployments/${params?.id}/logs`)}
+              className="px-4 py-2.5 text-sm font-medium border-b-2 -mb-px border-transparent text-gray-500 hover:text-gray-700">
+              Live Logs
+            </button>
+          );
+          if (tab === "history") return (
+            <button key={tab} onClick={() => router.push(`/dashboard/deployments/${params?.id}/history`)}
+              className="px-4 py-2.5 text-sm font-medium border-b-2 -mb-px border-transparent text-gray-500 hover:text-gray-700">
+              History
+            </button>
+          );
+          if (tab === "monitoring") return (
+            <button key={tab} onClick={() => router.push(`/dashboard/monitoring?deploymentId=${params?.id}`)}
+              className="px-4 py-2.5 text-sm font-medium border-b-2 -mb-px border-transparent text-gray-500 hover:text-gray-700">
+              Monitoring
+            </button>
+          );
+          return (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${activeTab === tab ? "border-indigo-600 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+              {tab === "overview" ? "Overview" : tab === "pipeline" ? "Build Pipeline" : "Environment"}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === "overview" && (
