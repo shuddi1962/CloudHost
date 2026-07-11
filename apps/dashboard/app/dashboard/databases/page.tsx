@@ -1,10 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useApi } from "@/lib/api-client";
+
+const demoDatabases = [
+  { id: "1", name: "prod-db", type: "PostgreSQL", version: "16", status: "running", host: "db.cloudhost.app", port: 5432, databaseName: "proddb", username: "admin", password: "********" },
+  { id: "2", name: "cache-redis", type: "Redis", version: "7", status: "running", host: "redis.cloudhost.app", port: 6379, databaseName: "0", username: "default", password: "********" },
+  { id: "3", name: "analytics-db", type: "MySQL", version: "8", status: "running", host: "mysql.cloudhost.app", port: 3306, databaseName: "analytics", username: "admin", password: "********" },
+];
 
 export default function DatabasesPage() {
-  const [databases, setDatabases] = useState<any[]>([]);
+  const [databases, setDatabases] = useState<any[]>(demoDatabases);
   const [showCreate, setShowCreate] = useState(false);
+
+  const { data: dbData } = useApi<any>("/api/databases/");
+
+  useEffect(() => {
+    if (dbData) {
+      const list = Array.isArray(dbData) ? dbData : dbData.databases || dbData.data || [];
+      if (list.length > 0) setDatabases(list);
+    }
+  }, [dbData]);
   const [form, setForm] = useState({ name: "", type: "postgresql", version: "16" });
 
   const createDB = async (e: React.FormEvent) => {

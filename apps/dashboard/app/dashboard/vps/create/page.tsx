@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const regions = [
   { code: "eu-west-3a", label: "Paris, Zone A (eu-west-3a)", price: "" },
@@ -117,6 +118,42 @@ export default function CreateInstancePage() {
 
   function removeTag(i: number) {
     setTags(tags.filter((_, idx) => idx !== i));
+  }
+
+  const router = useRouter();
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+
+  async function handleCreate() {
+    setCreating(true);
+    setCreateError("");
+    try {
+      const planMap: Record<number, string> = {
+        5: "nano", 7: "micro", 12:"small", 24:"medium", 44:"large",
+        84:"xlarge", 164:"2xlarge", 384:"4xlarge", 884:"8xlarge", 1324:"12xlarge", 1764:"16xlarge",
+      };
+      const res = await fetch("/api/vps/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: instanceName,
+          plan: planMap[selectedSize || 12] || "small",
+          region: selectedRegion,
+          blueprint: selectedBlueprint,
+          platform: platform.toLowerCase(),
+          tags: tags.filter(t => t.key).map(t => `${t.key}=${t.value}`),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to create instance");
+      }
+      router.push("/dashboard/vps");
+    } catch (e: any) {
+      setCreateError(e.message);
+    } finally {
+      setCreating(false);
+    }
   }
 
   const region = regions.find((r) => r.code === selectedRegion) || regions[0];
@@ -396,8 +433,10 @@ export default function CreateInstancePage() {
       {/* Footer */}
       <div className="flex items-center justify-between border-t border-gray-200 pt-6">
         <p className="text-xs text-gray-400">Your use of AWS services is subject to the <Link href="#" className="text-indigo-600 hover:underline">AWS Customer Agreement</Link>.</p>
-        <button className="px-8 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
-          Create instance
+        {createError && <p className="text-sm text-red-600">{createError}</p>}
+        <button onClick={handleCreate} disabled={creating}
+          className="px-8 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50">
+          {creating ? "Creating..." : "Create instance"}
         </button>
       </div>
     </div>

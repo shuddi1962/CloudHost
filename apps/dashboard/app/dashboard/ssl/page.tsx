@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useApi } from "@/lib/api-client";
 
 const certificateTypes = [
   { name: "Let's Encrypt", type: "free", desc: "Free SSL certificate, auto-renewed", validity: "90 days", domains: "Single", badge: "Free", color: "bg-green-100 text-green-800" },
@@ -9,8 +10,22 @@ const certificateTypes = [
   { name: "EV SSL", type: "paid", desc: "Extended Validation - green bar", validity: "1-2 years", domains: "Single", badge: "$149/yr", color: "bg-indigo-100 text-indigo-800" },
 ];
 
+const demoCertificates = [
+  { id: "1", name: "example.com", type: "Let's Encrypt", status: "active", expiresAt: "2026-10-10T00:00:00Z", domains: ["example.com", "www.example.com"] },
+  { id: "2", name: "myapp.com", type: "Let's Encrypt", status: "active", expiresAt: "2026-09-15T00:00:00Z", domains: ["myapp.com"] },
+];
+
 export default function SslPage() {
-  const [certs, setCerts] = useState<any[]>([]);
+  const [certs, setCerts] = useState<any[]>(demoCertificates);
+
+  const { data: certData, loading } = useApi<any>("/api/ssl/");
+
+  useEffect(() => {
+    if (certData) {
+      const list = Array.isArray(certData) ? certData : certData.certificates || certData.certs || certData.data || [];
+      if (list.length > 0) setCerts(list);
+    }
+  }, [certData]);
 
   return (
     <div className="space-y-6">
@@ -59,7 +74,19 @@ export default function SslPage() {
               <p className="text-xs mt-1">Install a free Let's Encrypt certificate to get started</p>
             </div>
           ) : (
-            <div>{/* cert list */}</div>
+            <div className="space-y-3">
+              {certs.map((cert) => (
+                <div key={cert.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium">{cert.name}</p>
+                    <p className="text-sm text-gray-500">{cert.type} · Expires {new Date(cert.expiresAt).toLocaleDateString()}</p>
+                  </div>
+                  <span className={`badge ${cert.status === "active" ? "badge-success" : "badge-warning"}`}>
+                    {cert.status}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

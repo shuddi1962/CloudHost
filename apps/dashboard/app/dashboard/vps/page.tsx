@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useApi } from "@/lib/api-client";
 
 const plans = [
   { name: "VPS-1", cpu: "1 vCPU", ram: "1 GB", storage: "25 GB NVMe", transfer: "1 TB", price: "$5.99", badge: "Starter" },
@@ -10,8 +11,23 @@ const plans = [
   { name: "VPS-4", cpu: "8 vCPU", ram: "16 GB", storage: "200 GB NVMe", transfer: "8 TB", price: "$49.99", badge: "Pro" },
 ];
 
+const demoServers = [
+  { id: "1", name: "web-server-01", plan: "VPS-2", ip: "192.168.1.100", status: "running", os: "Ubuntu 22.04", region: "us-east-1a" },
+  { id: "2", name: "db-server-01", plan: "VPS-3", ip: "192.168.1.101", status: "running", os: "Ubuntu 22.04", region: "us-east-1a" },
+  { id: "3", name: "staging-server", plan: "VPS-1", ip: "192.168.1.102", status: "stopped", os: "Debian 12", region: "eu-west-1a" },
+];
+
 export default function VpsPage() {
-  const [servers, setServers] = useState<any[]>([]);
+  const [servers, setServers] = useState<any[]>(demoServers);
+
+  const { data: vpsData, loading } = useApi<any>("/api/vps/");
+
+  useEffect(() => {
+    if (vpsData) {
+      const list = Array.isArray(vpsData) ? vpsData : vpsData.vps || vpsData.servers || [];
+      setServers(list);
+    }
+  }, [vpsData]);
 
   return (
     <div className="space-y-6">
@@ -54,6 +70,9 @@ export default function VpsPage() {
           <h2 className="font-semibold">Your Servers</h2>
         </div>
         <div className="card-body">
+          {loading && (
+            <p className="text-sm text-gray-400 mb-3 animate-pulse">Loading servers...</p>
+          )}
           {servers.length === 0 ? (
             <div className="text-center py-8 text-gray-400">
               <svg className="w-12 h-12 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,7 +81,24 @@ export default function VpsPage() {
               <p className="text-sm">No VPS servers deployed</p>
               <p className="text-xs mt-1">Choose a plan above to deploy your first server</p>
             </div>
-          ) : null}
+          ) : (
+            <div className="space-y-3">
+              {servers.map((server) => (
+                <div key={server.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${server.status === "running" ? "bg-green-500" : "bg-gray-400"}`} />
+                    <div>
+                      <p className="font-medium">{server.name}</p>
+                      <p className="text-sm text-gray-500">{server.ip} · {server.plan}</p>
+                    </div>
+                  </div>
+                  <span className={`badge ${server.status === "running" ? "badge-success" : "badge-warning"}`}>
+                    {server.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

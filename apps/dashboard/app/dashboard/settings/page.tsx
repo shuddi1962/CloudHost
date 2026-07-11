@@ -1,8 +1,22 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useApi } from "@/lib/api-client";
+
+const demoProfile = { name: "John Doe", email: "john@example.com" };
 
 export default function SettingsPage() {
+  const [profile, setProfile] = useState(demoProfile);
+
+  const { data: profileData, loading } = useApi<any>("/api/settings/profile/");
+
+  useEffect(() => {
+    if (profileData) {
+      setProfile({ name: profileData.name || "", email: profileData.email || "" });
+    }
+  }, [profileData]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -28,11 +42,11 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Full Name</label>
-              <input className="input-field" placeholder="John Doe" />
+              <input className="input-field" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} placeholder="John Doe" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Email</label>
-              <input className="input-field" placeholder="john@example.com" />
+              <input className="input-field" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} placeholder="john@example.com" />
             </div>
           </div>
           <button className="btn-primary">Save Changes</button>

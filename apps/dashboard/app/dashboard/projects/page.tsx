@@ -2,29 +2,29 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useApi } from "@/lib/api-client";
+
+const demoProjects = [
+  { id: "1", name: "My Website", description: "Company website built with Next.js", createdAt: "2026-01-15T00:00:00Z" },
+  { id: "2", name: "E-commerce Store", description: "Online store with React frontend", createdAt: "2026-02-20T00:00:00Z" },
+  { id: "3", name: "API Service", description: "Backend API for mobile apps", createdAt: "2026-03-10T00:00:00Z" },
+  { id: "4", name: "SaaS Dashboard", description: "Customer dashboard for analytics", createdAt: "2026-04-05T00:00:00Z" },
+];
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState<any[]>(demoProjects);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const fetchProjects = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:3001/api/projects", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setProjects(data.projects || []);
-    } catch (e) {
-      console.error(e);
-    }
-    setLoading(false);
-  };
+  const { data: projectData, loading, refetch } = useApi<any>("/api/projects/");
 
-  useEffect(() => { fetchProjects(); }, []);
+  useEffect(() => {
+    if (projectData) {
+      const list = Array.isArray(projectData) ? projectData : projectData.projects || [];
+      if (list.length > 0) setProjects(list);
+    }
+  }, [projectData]);
 
   const createProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +41,7 @@ export default function ProjectsPage() {
       setShowCreate(false);
       setName("");
       setDescription("");
-      fetchProjects();
+      refetch();
     }
   };
 
@@ -52,7 +52,7 @@ export default function ProjectsPage() {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
-    fetchProjects();
+    refetch();
   };
 
   if (loading) return <div className="text-center py-12 text-gray-400">Loading...</div>;

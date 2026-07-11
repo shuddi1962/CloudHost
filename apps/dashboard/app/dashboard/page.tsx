@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useApi } from "@/lib/api-client";
 
 const quickActions = [
   { href: "/projects", label: "New Project", desc: "Create a new project", color: "bg-blue-500" },
@@ -51,23 +52,71 @@ const recentActivity = [
   { action: "Deployed", target: "Edge Function (auth-webhook)", type: "Functions", time: "3 days ago", color: "bg-violet-500" },
 ];
 
+function getCount(data: any): number {
+  if (!data) return 0;
+  if (Array.isArray(data)) return data.length;
+  if (typeof data === "object") {
+    if (data.count !== undefined) return Number(data.count);
+    if (data.total !== undefined) return Number(data.total);
+    const arr = Object.values(data).find((v) => Array.isArray(v));
+    if (arr) return arr.length;
+  }
+  return 0;
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
+  const [stats, setStats] = useState(demoStats);
+
+  const metrics = useApi<any>("/api/monitoring/metrics");
+  const billing = useApi<any>("/api/billing/usage");
+  const vps = useApi<any>("/api/vps/");
+  const deployments = useApi<any>("/api/deployments/");
+
+  const loading = metrics.loading || billing.loading || vps.loading || deployments.loading;
 
   useEffect(() => {
     const u = localStorage.getItem("user");
     if (u) setUser(JSON.parse(u));
   }, []);
 
+  useEffect(() => {
+    const newStats = [...demoStats];
+    const byLabel = (label: string) => newStats.find((s) => s.label === label);
+    if (metrics.data) {
+      const s = byLabel("Databases");
+      if (s) s.value = String(getCount(metrics.data));
+    }
+    if (deployments.data) {
+      const s = byLabel("Deployments");
+      if (s) s.value = String(getCount(deployments.data));
+    }
+    if (vps.data) {
+      const s = byLabel("VPS Servers");
+      if (s) s.value = String(getCount(vps.data));
+    }
+    if (billing.data) {
+      const s = byLabel("Projects");
+      if (s) s.value = String(getCount(billing.data));
+    }
+    setStats(newStats);
+  }, [metrics.data, vps.data, deployments.data, billing.data]);
+
   return (
     <div className="space-y-6">
+      {loading && (
+        <div className="flex items-center gap-2 text-sm text-gray-400 animate-pulse">
+          <div className="w-2 h-2 rounded-full bg-brand-500" />
+          Loading stats...
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-bold">Welcome back, {user?.name || "User"}</h1>
         <p className="text-gray-500">Here&apos;s what&apos;s happening with your projects today</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {demoStats.map((stat) => (
+        {stats.map((stat) => (
           <Link key={stat.label} href={stat.href} className="card p-5 hover:shadow-md transition-shadow">
             <p className="text-xs text-gray-500">{stat.label}</p>
             <p className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>

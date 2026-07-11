@@ -1,10 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useApi } from "@/lib/api-client";
+
+const demoDomains = [
+  { id: "1", name: "example.com", verified: true, dnsRecords: [{ type: "A", name: "@", value: "192.168.1.1", ttl: 3600 }, { type: "CNAME", name: "www", value: "example.com", ttl: 3600 }] },
+  { id: "2", name: "myapp.com", verified: true, dnsRecords: [{ type: "A", name: "@", value: "192.168.1.2", ttl: 3600 }] },
+  { id: "3", name: "pending-domain.com", verified: false, dnsRecords: [] },
+];
 
 export default function DomainsPage() {
-  const [domains, setDomains] = useState<any[]>([]);
+  const [domains, setDomains] = useState<any[]>(demoDomains);
   const [showAdd, setShowAdd] = useState(false);
+
+  const { data: domainData } = useApi<any>("/api/domains/");
+
+  useEffect(() => {
+    if (domainData) {
+      const list = Array.isArray(domainData) ? domainData : domainData.domains || domainData.data || [];
+      if (list.length > 0) setDomains(list);
+    }
+  }, [domainData]);
   const [domainName, setDomainName] = useState("");
 
   const addDomain = async (e: React.FormEvent) => {
