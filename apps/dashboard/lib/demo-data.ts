@@ -17,63 +17,64 @@ export function setupDemoApi() {
 
 function delay(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const uuid = () => "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16); });
 const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString();
 const hoursAgo = (n: number) => new Date(Date.now() - n * 3600000).toISOString();
 
 const demoProjects = [
-  { id: uuid(), name: "Acme Corp Website", description: "Company landing page and blog", createdAt: daysAgo(45), organizationId: uuid() },
-  { id: uuid(), name: "E-commerce Store", description: "Online storefront with payments", createdAt: daysAgo(30), organizationId: uuid() },
-  { id: uuid(), name: "SaaS Dashboard", description: "Customer analytics dashboard", createdAt: daysAgo(15), organizationId: uuid() },
-  { id: uuid(), name: "Mobile API Backend", description: "GraphQL API for mobile clients", createdAt: daysAgo(7), organizationId: uuid() },
+  { id: slug("acme-corp-website"), name: "Acme Corp Website", description: "Company landing page and blog", createdAt: daysAgo(45), organizationId: "org-acme" },
+  { id: slug("ecommerce-store"), name: "E-commerce Store", description: "Online storefront with payments", createdAt: daysAgo(30), organizationId: "org-acme" },
+  { id: slug("saas-dashboard"), name: "SaaS Dashboard", description: "Customer analytics dashboard", createdAt: daysAgo(15), organizationId: "org-acme" },
+  { id: slug("mobile-api-backend"), name: "Mobile API Backend", description: "GraphQL API for mobile clients", createdAt: daysAgo(7), organizationId: "org-acme" },
 ];
 
 const demoDeployments = [
-  { id: uuid(), projectId: demoProjects[0].id, name: "acme-website", framework: "Next.js", status: "running", gitBranch: "main", buildCommand: "npm run build", outputDirectory: ".next", environment: { NODE_ENV: "production", API_URL: "https://api.acme.com" }, gitRepository: "https://github.com/acme/website.git", url: "acme-website.cloudhost.app", createdAt: daysAgo(45), updatedAt: hoursAgo(2) },
-  { id: uuid(), projectId: demoProjects[1].id, name: "ecommerce-store", framework: "React", status: "running", gitBranch: "main", buildCommand: "npm run build", outputDirectory: "build", environment: { NODE_ENV: "production", STRIPE_KEY: "sk_live_***" }, gitRepository: "https://github.com/acme/store.git", url: "ecommerce-store.cloudhost.app", createdAt: daysAgo(30), updatedAt: hoursAgo(6) },
-  { id: uuid(), projectId: demoProjects[2].id, name: "saas-dashboard", framework: "Next.js", status: "running", gitBranch: "develop", buildCommand: "npm run build", outputDirectory: ".next", environment: { NODE_ENV: "development" }, gitRepository: "https://github.com/acme/saas.git", url: "saas-dashboard.cloudhost.app", createdAt: daysAgo(15), updatedAt: hoursAgo(1) },
-  { id: uuid(), projectId: demoProjects[3].id, name: "api-backend", framework: "Node.js", status: "running", gitBranch: "main", buildCommand: "npm run build", outputDirectory: "dist", environment: { NODE_ENV: "production", DB_URL: "postgres://***" }, gitRepository: "https://github.com/acme/api.git", url: "api-backend.cloudhost.app", createdAt: daysAgo(7), updatedAt: hoursAgo(12) },
-  { id: uuid(), projectId: demoProjects[0].id, name: "acme-staging", framework: "Next.js", status: "stopped", gitBranch: "staging", buildCommand: "npm run build", outputDirectory: ".next", environment: { NODE_ENV: "staging" }, gitRepository: "https://github.com/acme/website.git", url: "acme-staging.cloudhost.app", createdAt: daysAgo(10), updatedAt: daysAgo(3) },
-  { id: uuid(), projectId: demoProjects[1].id, name: "admin-panel", framework: "PHP", status: "failed", gitBranch: "main", buildCommand: "composer install", outputDirectory: "public", environment: {}, gitRepository: "https://github.com/acme/admin.git", url: "admin-panel.cloudhost.app", createdAt: daysAgo(5), updatedAt: hoursAgo(8) },
+  { id: slug("acme-website"), projectId: demoProjects[0].id, name: "acme-website", framework: "Next.js", status: "running", gitBranch: "main", buildCommand: "npm run build", outputDirectory: ".next", environment: { NODE_ENV: "production", API_URL: "https://api.acme.com" }, gitRepository: "https://github.com/acme/website.git", url: "acme-website.cloudhost.app", createdAt: daysAgo(45), updatedAt: hoursAgo(2) },
+  { id: slug("ecommerce-store"), projectId: demoProjects[1].id, name: "ecommerce-store", framework: "React", status: "running", gitBranch: "main", buildCommand: "npm run build", outputDirectory: "build", environment: { NODE_ENV: "production", STRIPE_KEY: "sk_live_***" }, gitRepository: "https://github.com/acme/store.git", url: "ecommerce-store.cloudhost.app", createdAt: daysAgo(30), updatedAt: hoursAgo(6) },
+  { id: slug("saas-dashboard"), projectId: demoProjects[2].id, name: "saas-dashboard", framework: "Next.js", status: "running", gitBranch: "develop", buildCommand: "npm run build", outputDirectory: ".next", environment: { NODE_ENV: "development" }, gitRepository: "https://github.com/acme/saas.git", url: "saas-dashboard.cloudhost.app", createdAt: daysAgo(15), updatedAt: hoursAgo(1) },
+  { id: slug("api-backend"), projectId: demoProjects[3].id, name: "api-backend", framework: "Node.js", status: "running", gitBranch: "main", buildCommand: "npm run build", outputDirectory: "dist", environment: { NODE_ENV: "production", DB_URL: "postgres://***" }, gitRepository: "https://github.com/acme/api.git", url: "api-backend.cloudhost.app", createdAt: daysAgo(7), updatedAt: hoursAgo(12) },
+  { id: slug("acme-staging"), projectId: demoProjects[0].id, name: "acme-staging", framework: "Next.js", status: "stopped", gitBranch: "staging", buildCommand: "npm run build", outputDirectory: ".next", environment: { NODE_ENV: "staging" }, gitRepository: "https://github.com/acme/website.git", url: "acme-staging.cloudhost.app", createdAt: daysAgo(10), updatedAt: daysAgo(3) },
+  { id: slug("admin-panel"), projectId: demoProjects[1].id, name: "admin-panel", framework: "PHP", status: "failed", gitBranch: "main", buildCommand: "composer install", outputDirectory: "public", environment: {}, gitRepository: "https://github.com/acme/admin.git", url: "admin-panel.cloudhost.app", createdAt: daysAgo(5), updatedAt: hoursAgo(8) },
 ];
 
 const demoDatabases = [
-  { id: uuid(), projectId: demoProjects[0].id, name: "acme-main-db", type: "PostgreSQL", version: "16", status: "running", host: "db.cloudhost.internal", port: 5432, databaseName: "acme_production", username: "acme_admin", password: uuid().substring(0, 20), createdAt: daysAgo(45), size: "2.4 GB" },
-  { id: uuid(), projectId: demoProjects[1].id, name: "store-inventory", type: "MySQL", version: "8.0", status: "running", host: "db.cloudhost.internal", port: 3306, databaseName: "store_inventory", username: "store_user", password: uuid().substring(0, 20), createdAt: daysAgo(30), size: "1.1 GB" },
-  { id: uuid(), projectId: demoProjects[2].id, name: "saas-cache", type: "Redis", version: "7.2", status: "running", host: "redis.cloudhost.internal", port: 6379, databaseName: "", username: "", password: uuid().substring(0, 20), createdAt: daysAgo(15), size: "128 MB" },
-  { id: uuid(), projectId: demoProjects[0].id, name: "acme-analytics", type: "PostgreSQL", version: "15", status: "stopped", host: "db.cloudhost.internal", port: 5432, databaseName: "acme_analytics", username: "analytics_user", password: uuid().substring(0, 20), createdAt: daysAgo(20), size: "856 MB" },
+  { id: slug("acme-main-db"), projectId: demoProjects[0].id, name: "acme-main-db", type: "PostgreSQL", version: "16", status: "running", host: "db.cloudhost.internal", port: 5432, databaseName: "acme_production", username: "acme_admin", password: "", createdAt: daysAgo(45), size: "2.4 GB" },
+  { id: slug("store-inventory"), projectId: demoProjects[1].id, name: "store-inventory", type: "MySQL", version: "8.0", status: "running", host: "db.cloudhost.internal", port: 3306, databaseName: "store_inventory", username: "store_user", password: "", createdAt: daysAgo(30), size: "1.1 GB" },
+  { id: slug("saas-cache"), projectId: demoProjects[2].id, name: "saas-cache", type: "Redis", version: "7.2", status: "running", host: "redis.cloudhost.internal", port: 6379, databaseName: "", username: "", password: "", createdAt: daysAgo(15), size: "128 MB" },
+  { id: slug("acme-analytics"), projectId: demoProjects[0].id, name: "acme-analytics", type: "PostgreSQL", version: "15", status: "stopped", host: "db.cloudhost.internal", port: 5432, databaseName: "acme_analytics", username: "analytics_user", password: "", createdAt: daysAgo(20), size: "856 MB" },
 ];
 
 const demoWordPress = [
-  { id: uuid(), name: "Acme Blog", domain: "blog.acme.com", phpVersion: "8.2", status: "running", adminEmail: "admin@acme.com", adminPassword: "wp_***", createdAt: daysAgo(30), url: "https://blog.acme.com" },
-  { id: uuid(), name: "Company News", domain: "news.acme.com", phpVersion: "8.1", status: "running", adminEmail: "editor@acme.com", adminPassword: "wp_***", createdAt: daysAgo(14), url: "https://news.acme.com" },
+  { id: slug("acme-blog"), name: "Acme Blog", domain: "blog.acme.com", phpVersion: "8.2", status: "running", adminEmail: "admin@acme.com", adminPassword: "wp_***", createdAt: daysAgo(30), url: "https://blog.acme.com" },
+  { id: slug("company-news"), name: "Company News", domain: "news.acme.com", phpVersion: "8.1", status: "running", adminEmail: "editor@acme.com", adminPassword: "wp_***", createdAt: daysAgo(14), url: "https://news.acme.com" },
 ];
 
 const demoDomains = [
-  { id: uuid(), name: "acme.com", verified: true, dnsRecords: [
+  { id: slug("acme.com"), name: "acme.com", verified: true, dnsRecords: [
     { type: "A", name: "@", value: "76.76.21.21", ttl: 3600 },
     { type: "CNAME", name: "www", value: "acme.cloudhost.app", ttl: 3600 },
     { type: "MX", name: "@", value: "mail.acme.com", ttl: 3600 },
     { type: "TXT", name: "@", value: "v=spf1 include:_spf.cloudhost.app ~all", ttl: 3600 },
   ]},
-  { id: uuid(), name: "shop.acme.com", verified: true, dnsRecords: [
+  { id: slug("shop.acme.com"), name: "shop.acme.com", verified: true, dnsRecords: [
     { type: "CNAME", name: "@", value: "acme.cloudhost.app", ttl: 3600 },
   ]},
-  { id: uuid(), name: "api.acme.com", verified: false, dnsRecords: [] },
+  { id: slug("api.acme.com"), name: "api.acme.com", verified: false, dnsRecords: [] },
 ];
 
 const demoWorkflows = [
-  { id: uuid(), name: "Deploy Notification", description: "Send Slack message on deploy", active: true, trigger: "Webhook", createdAt: daysAgo(20), updatedAt: hoursAgo(4), nodes: [{ id: "1", type: "webhook" }, { id: "2", type: "slack" }] },
-  { id: uuid(), name: "Daily Backup", description: "Backup all databases at midnight", active: true, trigger: "Schedule", createdAt: daysAgo(15), updatedAt: daysAgo(1), nodes: [{ id: "1", type: "schedule" }, { id: "2", type: "database" }] },
-  { id: uuid(), name: "Welcome Email", description: "Send welcome email to new users", active: false, trigger: "Email", createdAt: daysAgo(10), updatedAt: daysAgo(5), nodes: [{ id: "1", type: "email" }, { id: "2", type: "http" }] },
-  { id: uuid(), name: "Deploy to Staging", description: "Auto-deploy main branch to staging", active: true, trigger: "Webhook", createdAt: daysAgo(5), updatedAt: hoursAgo(12), nodes: [{ id: "1", type: "webhook" }, { id: "2", type: "http" }, { id: "3", type: "database" }] },
-  { id: uuid(), name: "Site Monitoring", description: "Check site uptime every 5 minutes", active: true, trigger: "Schedule", createdAt: daysAgo(3), updatedAt: hoursAgo(8), nodes: [{ id: "1", type: "schedule" }, { id: "2", type: "http" }] },
+  { id: slug("deploy-notification"), name: "Deploy Notification", description: "Send Slack message on deploy", active: true, trigger: "Webhook", createdAt: daysAgo(20), updatedAt: hoursAgo(4), nodes: [{ id: "1", type: "webhook" }, { id: "2", type: "slack" }] },
+  { id: slug("daily-backup"), name: "Daily Backup", description: "Backup all databases at midnight", active: true, trigger: "Schedule", createdAt: daysAgo(15), updatedAt: daysAgo(1), nodes: [{ id: "1", type: "schedule" }, { id: "2", type: "database" }] },
+  { id: slug("welcome-email"), name: "Welcome Email", description: "Send welcome email to new users", active: false, trigger: "Email", createdAt: daysAgo(10), updatedAt: daysAgo(5), nodes: [{ id: "1", type: "email" }, { id: "2", type: "http" }] },
+  { id: slug("deploy-to-staging"), name: "Deploy to Staging", description: "Auto-deploy main branch to staging", active: true, trigger: "Webhook", createdAt: daysAgo(5), updatedAt: hoursAgo(12), nodes: [{ id: "1", type: "webhook" }, { id: "2", type: "http" }, { id: "3", type: "database" }] },
+  { id: slug("site-monitoring"), name: "Site Monitoring", description: "Check site uptime every 5 minutes", active: true, trigger: "Schedule", createdAt: daysAgo(3), updatedAt: hoursAgo(8), nodes: [{ id: "1", type: "schedule" }, { id: "2", type: "http" }] },
 ];
 
 const demoEdgeFunctions = [
-  { id: uuid(), name: "hello-world", runtime: "deno", status: "active", url: "https://edge.cloudhost.app/hello-world", sourceCode: `export default async (req: Request) => {\n  const { name } = await req.json().catch(() => ({ name: "World" }));\n  return new Response(\n    JSON.stringify({ message: \`Hello \${name} from the edge!\` }),\n    { headers: { "Content-Type": "application/json" } }\n  );\n};`, createdAt: daysAgo(20), projectId: uuid() },
-  { id: uuid(), name: "auth-middleware", runtime: "deno", status: "active", url: "https://edge.cloudhost.app/auth-middleware", sourceCode: `export default async (req: Request) => {\n  const token = req.headers.get("Authorization");\n  if (!token) return new Response("Unauthorized", { status: 401 });\n  return fetch("https://api.example.com/verify", { headers: { Authorization: token } });\n};`, createdAt: daysAgo(12), projectId: uuid() },
-  { id: uuid(), name: "image-optimizer", runtime: "node", status: "inactive", url: "https://edge.cloudhost.app/image-optimizer", sourceCode: `import sharp from "sharp";\nexport default async (req: Request) => {\n  const url = new URL(req.url);\n  const imageUrl = url.searchParams.get("url");\n  if (!imageUrl) return new Response("Missing url param", { status: 400 });\n  return new Response("Optimized image", { headers: { "Content-Type": "image/webp" } });\n};`, createdAt: daysAgo(5), projectId: uuid() },
+  { id: slug("hello-world"), name: "hello-world", runtime: "deno", status: "active", url: "https://edge.cloudhost.app/hello-world", sourceCode: `export default async (req: Request) => {\n  const { name } = await req.json().catch(() => ({ name: "World" }));\n  return new Response(\n    JSON.stringify({ message: \`Hello \${name} from the edge!\` }),\n    { headers: { "Content-Type": "application/json" } }\n  );\n};`, createdAt: daysAgo(20), projectId: demoProjects[0].id },
+  { id: slug("auth-middleware"), name: "auth-middleware", runtime: "deno", status: "active", url: "https://edge.cloudhost.app/auth-middleware", sourceCode: `export default async (req: Request) => {\n  const token = req.headers.get("Authorization");\n  if (!token) return new Response("Unauthorized", { status: 401 });\n  return fetch("https://api.example.com/verify", { headers: { Authorization: token } });\n};`, createdAt: daysAgo(12), projectId: demoProjects[0].id },
+  { id: slug("image-optimizer"), name: "image-optimizer", runtime: "node", status: "inactive", url: "https://edge.cloudhost.app/image-optimizer", sourceCode: `import sharp from "sharp";\nexport default async (req: Request) => {\n  const url = new URL(req.url);\n  const imageUrl = url.searchParams.get("url");\n  if (!imageUrl) return new Response("Missing url param", { status: 400 });\n  return new Response("Optimized image", { headers: { "Content-Type": "image/webp" } });\n};`, createdAt: daysAgo(5), projectId: demoProjects[1].id },
 ];
 
 const demoMarketplaceApps = [
@@ -117,9 +118,9 @@ const demoFtpAccounts = [
 ];
 
 const demoHostingAccounts = [
-  { id: uuid(), domain: "acme.com", package: "Business", phpVersion: "8.2", diskUsed: 45, diskLimit: 100, status: "active", createdAt: daysAgo(45) },
-  { id: uuid(), domain: "shop.acme.com", package: "Starter", phpVersion: "8.1", diskUsed: 12, diskLimit: 50, status: "active", createdAt: daysAgo(30) },
-  { id: uuid(), domain: "api.acme.com", package: "Pro", phpVersion: "8.3", diskUsed: 28, diskLimit: 200, status: "active", createdAt: daysAgo(15) },
+  { id: slug("acme.com"), domain: "acme.com", package: "Business", phpVersion: "8.2", diskUsed: 45, diskLimit: 100, status: "active", createdAt: daysAgo(45) },
+  { id: slug("shop.acme.com"), domain: "shop.acme.com", package: "Starter", phpVersion: "8.1", diskUsed: 12, diskLimit: 50, status: "active", createdAt: daysAgo(30) },
+  { id: slug("api.acme.com"), domain: "api.acme.com", package: "Pro", phpVersion: "8.3", diskUsed: 28, diskLimit: 200, status: "active", createdAt: daysAgo(15) },
 ];
 
 const demoPreviewDeployments = [
