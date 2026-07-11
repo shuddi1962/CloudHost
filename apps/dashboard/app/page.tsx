@@ -48,7 +48,7 @@ export default function HomePage() {
       localStorage.setItem("token", fakeJwt(demouser.user.id, demouser.user.email));
       localStorage.setItem("user", JSON.stringify(demouser.user));
       localStorage.setItem("organizations", JSON.stringify([demouser.org]));
-      router.push("/dashboard");
+      router.push("/");
       return;
     }
 
@@ -73,9 +73,20 @@ export default function HomePage() {
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      router.push("/dashboard");
+      router.push("/");
+      return;
     } catch {
-      setError("Connection error. Is the API server running?");
+      if (isLogin && email && password) {
+        const fallback = DEMO_ACCOUNTS[email.toLowerCase()];
+        if (fallback && password === fallback.password) {
+          localStorage.setItem("token", fakeJwt(fallback.user.id, fallback.user.email));
+          localStorage.setItem("user", JSON.stringify(fallback.user));
+          localStorage.setItem("organizations", JSON.stringify([fallback.org]));
+          router.push("/");
+          return;
+        }
+      }
+      setError("Connection error. API server is not running. Use demo credentials below.");
       setLoading(false);
     }
   };
