@@ -10,8 +10,10 @@ export default function DeploymentEnvPage() {
   const [loading, setLoading] = useState(true);
   const [newKey, setNewKey] = useState("");
   const [newValue, setNewValue] = useState("");
+  const [newScope, setNewScope] = useState<'all' | 'production' | 'preview' | 'development'>('all');
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [editScope, setEditScope] = useState<'all' | 'production' | 'preview' | 'development'>('all');
   const [search, setSearch] = useState("");
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
 
@@ -87,9 +89,14 @@ export default function DeploymentEnvPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <button onClick={() => router.push(`/dashboard/deployments/${id}`)}
-        className="text-gray-400 hover:text-gray-600 mb-4 flex items-center gap-1 text-sm">
+        className="text-gray-400 hover:text-gray-600 mb-2 flex items-center gap-1 text-sm">
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         Back to Deployment
+      </button>
+      <button onClick={() => router.push('/dashboard/env-vars')}
+        className="text-gray-400 hover:text-gray-600 mb-4 flex items-center gap-1 text-sm">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+        All Environment Variables
       </button>
 
       <div className="flex items-center justify-between mb-6">
@@ -113,6 +120,16 @@ export default function DeploymentEnvPage() {
               <label className="text-xs text-gray-500 block mb-1">Value</label>
               <input value={newValue} onChange={e => setNewValue(e.target.value)}
                 placeholder="my-value" className="w-full border rounded-lg px-3 py-2 text-sm font-mono" />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">Scope</label>
+              <select value={newScope} onChange={e => setNewScope(e.target.value as any)}
+                className="border rounded-lg px-3 py-2 text-sm">
+                <option value="all">All Environments</option>
+                <option value="production">Production</option>
+                <option value="preview">Preview</option>
+                <option value="development">Development</option>
+              </select>
             </div>
             <button onClick={addVar} disabled={!newKey.trim()}
               className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 disabled:opacity-50 whitespace-nowrap">
@@ -154,9 +171,14 @@ export default function DeploymentEnvPage() {
                   <div key={key} className="flex items-center gap-2 bg-gray-50 rounded-lg p-3 group hover:bg-gray-100 transition-colors">
                     {editingKey === key ? (
                       <>
-                        <code className="text-sm font-mono text-indigo-600 w-48">{key}</code>
+                        <code className="text-sm font-mono text-indigo-600 w-44">{key}</code>
                         <input value={editValue} onChange={e => setEditValue(e.target.value)}
                           className="flex-1 border rounded px-2 py-1 text-sm font-mono" autoFocus />
+                        <select value={editScope} onChange={e => setEditScope(e.target.value as any)}
+                          className="border rounded px-2 py-1 text-xs">
+                          <option value="all">All</option><option value="production">Production</option>
+                          <option value="preview">Preview</option><option value="development">Development</option>
+                        </select>
                         <button onClick={() => updateVar(key, editValue)}
                           className="text-xs text-green-600 hover:underline">Save</button>
                         <button onClick={() => setEditingKey(null)}
@@ -164,7 +186,7 @@ export default function DeploymentEnvPage() {
                       </>
                     ) : (
                       <>
-                        <code className="text-sm font-mono text-indigo-600 w-48 truncate">{key}</code>
+                        <code className="text-sm font-mono text-indigo-600 w-44 truncate">{key}</code>
                         <div className="flex-1 flex items-center gap-2">
                           <code className="text-sm font-mono text-gray-500 truncate max-w-md">
                             {revealed.has(key) ? value : value.length > 20 ? value.slice(0, 3) + '•'.repeat(Math.min(value.length - 6, 20)) + value.slice(-3) : '•'.repeat(value.length || 8)}
@@ -174,14 +196,16 @@ export default function DeploymentEnvPage() {
                             {revealed.has(key) ? 'Hide' : 'Show'}
                           </button>
                         </div>
-                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100">
-                          <button onClick={() => { setEditingKey(key); setEditValue(value); }}
-                            className="text-xs text-blue-600 hover:underline">Edit</button>
-                          <button onClick={() => deleteVar(key)}
-                            className="text-xs text-red-600 hover:underline">Delete</button>
-                          <button onClick={async () => {
-                            await navigator.clipboard.writeText(value);
-                          }} className="text-xs text-gray-400 hover:text-gray-600">Copy</button>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">{'all'}</span>
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100">
+                            <button onClick={() => { setEditingKey(key); setEditValue(value); setEditScope('all'); }}
+                              className="text-xs text-blue-600 hover:underline">Edit</button>
+                            <button onClick={() => deleteVar(key)}
+                              className="text-xs text-red-600 hover:underline">Delete</button>
+                            <button onClick={async () => { await navigator.clipboard.writeText(value); }}
+                              className="text-xs text-gray-400 hover:text-gray-600">Copy</button>
+                          </div>
                         </div>
                       </>
                     )}
