@@ -256,6 +256,11 @@ const demoDockerDeployments = [
   { id: uuid(), name: "redis-cache", framework: "Redis", status: "running", buildType: "image", url: "redis-cache.cloudhost.app", domain: "", port: 6379, replicas: 1, resources: { cpu: "0.5", memory: "256M" }, logs: [] },
 ];
 
+const demoN8nInstances = [
+  { id: uuid(), name: "production-n8n", version: "1.0.0", status: "running", port: 5678, domain: "n8n.cloudhost.app", apiKey: "ch_n8n_prod_xxxxxxxxxxxxxxxxxxxxxx" },
+  { id: uuid(), name: "staging-n8n", version: "latest", status: "running", port: 5679, domain: "staging-n8n.cloudhost.app", apiKey: "ch_n8n_stg_xxxxxxxxxxxxxxxxxxxxxx" },
+];
+
 const demoBuildpacks = [
   { framework: "node", name: "Node.js", language: "JavaScript", versions: ["18", "20", "22"] },
   { framework: "python", name: "Python", language: "Python", versions: ["3.10", "3.11", "3.12"] },
@@ -567,8 +572,24 @@ function findHandler(url: string, method: string, body?: any): Handler | null {
   if (path.match(/\/api\/docker\/deployments\/[^/]+\/restart/)) {
     return { status: 200, data: { success: true, message: "Container restarted" } };
   }
+  if (path.match(/^\/api\/hostinger-services\/n8n(\/.*)?$/)) {
+    const id = path.split("/")[5];
+    if (method === "GET") {
+      return { status: 200, data: { instances: demoN8nInstances } };
+    }
+    if (method === "POST" && !id) {
+      const newInst = { id: uuid(), ...body, status: "deploying", port: 5678, domain: body.domain || `${body.name}.n8n.cloudhost.app`, apiKey: uuid().replace(/-/g, "").substring(0, 32) };
+      return { status: 201, data: { instance: newInst } };
+    }
+    if (method === "POST" && path.endsWith("/restart")) {
+      return { status: 200, data: { success: true } };
+    }
+    if (method === "DELETE" && id) {
+      return { status: 200, data: { success: true } };
+    }
+  }
   if (path.match(/\/api\/hostinger-services\/(\w+)/)) {
-    const service = path.match(/\/hostinger-services\/(\w+)/)?.[1];
+    const service = path.match(/\/api\/hostinger-services\/(\w+)/)?.[1];
     return handleHostingerService(service!, method, path, body);
   }
   if (path.match(/\/api\/business-tools\/(\w+)/)) {
