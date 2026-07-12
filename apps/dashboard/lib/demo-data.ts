@@ -436,10 +436,27 @@ function findHandler(url: string, method: string, body?: any): Handler | null {
     // Preview
     "GET /api/preview-deployments": () => ({ status: 200, data: { previews: demoPreviewDeployments.filter(p => p.deploymentId === findIdInPath(url, "deployment")) } }),
     "POST /api/preview-deployments": () => ({ status: 201, data: { preview: { id: uuid(), ...body, status: "building", previewUrl: `${body.branchName}.preview.cloudhost.app`, expiresAt: daysAgo(-7), createdAt: new Date().toISOString() } } }),
-    // Auth
+    // Auth providers
     "GET /api/auth-providers/organization/00000000-0000-0000-0000-000000000000": () => ({ status: 200, data: { authProviders: demoAuthProviders } }),
     "GET /api/auth-providers/providers-info": () => ({ status: 200, data: { providersInfo: demoProvidersInfo } }),
     "POST /api/auth-providers/configure": () => ({ status: 200, data: { success: true } }),
+    // Auth (session / login / logout)
+    "GET /api/auth/me": () => {
+      const userData = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      if (userData) {
+        return { status: 200, data: { user: JSON.parse(userData) } };
+      }
+      return { status: 401, data: { error: "Not authenticated" } };
+    },
+    "POST /api/auth/login": () => ({ status: 200, data: { user: JSON.parse(typeof window !== "undefined" ? localStorage.getItem("user") || "null" : "null") || { id: "demo-user-001", email: "user@cloudhost.com", name: "John Customer", isAdmin: false, isSuperAdmin: false }, organizations: [{ id: "org-demo-002", name: "Acme Corp", slug: "acme-corp", role: "member" }] } }),
+    "POST /api/auth/logout": () => {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("organizations");
+      }
+      return { status: 200, data: { message: "Signed out" } };
+    },
     // Edge function actions
     "POST /api/edge-functions/:id/deploy": () => ({ status: 200, data: { success: true, status: "active" } }),
     "POST /api/edge-functions/:id/deactivate": () => ({ status: 200, data: { success: true, status: "inactive" } }),

@@ -175,14 +175,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const init = async () => {
       try {
-        const res = await fetch("/api/auth/me");
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const res = await fetch(`${apiBase}/api/auth/me`, { credentials: "include" });
         if (res.ok) {
           const data = await res.json();
           if (data.user) setUser(data.user);
-        } else {
-          router.push("/login");
+          return;
         }
-      } catch {
+      } catch {}
+      const userData = localStorage.getItem("user");
+      if (userData) {
+        setUser(JSON.parse(userData));
+      } else {
         router.push("/login");
       }
     };
@@ -190,7 +194,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [router]);
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      await fetch(`${apiBase}/api/auth/logout`, { method: "POST", credentials: "include" });
+    } catch {}
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("organizations");
     router.push("/login");
   };
 
