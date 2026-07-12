@@ -31,7 +31,7 @@ import { webhooksRouter } from "./routes/webhooks";
 import { hostingRouter } from "./routes/hosting";
 import { dockerRouter } from "./routes/docker-deployments";
 import { marketplaceRouter } from "./routes/marketplace";
-import { whmcsRouter } from "./routes/whmcs";
+
 import { cloudflareComputeRouter } from "./routes/cloudflare-compute";
 import { cloudflareStorageRouter } from "./routes/cloudflare-storage";
 import { cloudflareAiRouter } from "./routes/cloudflare-ai";
@@ -90,7 +90,7 @@ app.route("/api/webhooks", webhooksRouter);
 app.route("/api/hosting", hostingRouter);
 app.route("/api/docker", dockerRouter);
 app.route("/api/marketplace", marketplaceRouter);
-app.route("/api/whmcs", whmcsRouter);
+
 app.route("/api/cloudflare/compute", cloudflareComputeRouter);
 app.route("/api/cloudflare/storage", cloudflareStorageRouter);
 app.route("/api/cloudflare/ai", cloudflareAiRouter);

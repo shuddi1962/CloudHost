@@ -1,144 +1,109 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  CheckCircle, XCircle, Info, AlertTriangle,
-  AlertOctagon, Clock, RefreshCw
-} from "lucide-react";
+import { useState } from "react";
 
-interface StatusEvent {
-  id: string;
-  title: string;
-  severity: string;
-  status: string;
+interface FeatureStatus {
+  area: string;
+  status: "live" | "beta" | "coming-soon";
   description: string;
-  updates: { message: string; timestamp: string }[];
-  timestamp: string;
 }
 
-const SEVERITY_ICONS: Record<string, any> = {
-  info: Info,
-  warning: AlertTriangle,
-  critical: AlertOctagon,
-  resolved: CheckCircle,
+const FEATURES: FeatureStatus[] = [
+  { area: "Deployments (Git)", status: "live", description: "Deploy apps from GitHub repositories with auto-detected frameworks" },
+  { area: "Deployments (Upload)", status: "live", description: "Deploy PHP, WordPress, and static sites from zip uploads" },
+  { area: "Databases", status: "live", description: "Provision PostgreSQL, MySQL, and Redis databases" },
+  { area: "Workflows", status: "live", description: "Visual workflow automation with HTTP, email, AI, and database nodes" },
+  { area: "VPS Servers", status: "live", description: "Provision and manage virtual private servers via DigitalOcean" },
+  { area: "Docker Deployments", status: "live", description: "Deploy containerized apps on provisioned infrastructure" },
+  { area: "File Manager", status: "live", description: "Browser-based file management" },
+  { area: "SSL Certificates", status: "live", description: "Free Let's Encrypt SSL certificate management" },
+  { area: "Cron Jobs", status: "live", description: "Scheduled task execution" },
+  { area: "Credentials", status: "live", description: "Encrypted credential storage for API keys and secrets" },
+  { area: "Cloudflare Workers", status: "beta", description: "Deploy serverless workers via Cloudflare API" },
+  { area: "Cloudflare Storage (R2/D1/KV)", status: "beta", description: "Cloudflare-backed object, document, and key-value storage" },
+  { area: "Domains & DNS", status: "beta", description: "Domain registration and DNS management" },
+  { area: "Email", status: "beta", description: "Business email and SMTP configuration" },
+  { area: "Supabase Integration", status: "beta", description: "Supabase project management and edge functions" },
+  { area: "Marketplace", status: "beta", description: "One-click app catalog and third-party integrations" },
+  { area: "Google Cloud (GCP)", status: "coming-soon", description: "GCP Compute Engine, Storage, and AI/ML resource provisioning" },
+  { area: "AWS", status: "coming-soon", description: "EC2, S3, and Lambda resource provisioning" },
+  { area: "Hostinger Services", status: "coming-soon", description: "Agency hosting, WooCommerce, and managed WordPress" },
+  { area: "AI Builder", status: "coming-soon", description: "AI-powered site generation and deployment" },
+  { area: "Site Builder", status: "coming-soon", description: "Drag-and-drop website builder" },
+  { area: "WHM/cPanel", status: "coming-soon", description: "Shared hosting management (planned for future)" },
+];
+
+const STATUS_STYLES: Record<string, { label: string; class: string }> = {
+  "live": { label: "Live", class: "bg-green-100 text-green-700" },
+  "beta": { label: "Beta", class: "bg-blue-100 text-blue-700" },
+  "coming-soon": { label: "Coming Soon", class: "bg-gray-100 text-gray-500" },
 };
 
-const SEVERITY_COLORS: Record<string, string> = {
-  info: "badge-info",
-  warning: "badge-warning",
-  critical: "badge-error",
-  resolved: "badge-success",
-};
+export default function PlatformStatusPage() {
+  const [filter, setFilter] = useState<string>("all");
 
-export default function StatusPage() {
-  const [events, setEvents] = useState<StatusEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const filtered = filter === "all" ? FEATURES : FEATURES.filter(f => f.status === filter);
 
-  const loadStatus = () => {
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/status`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((data) => setEvents(data.events || []))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => { loadStatus(); }, []);
-
-  const hasIssues = events.some((e) => e.severity !== "resolved");
-
-  if (loading) return <div className="text-center py-12 text-gray-400">Loading...</div>;
+  const liveCount = FEATURES.filter(f => f.status === "live").length;
+  const betaCount = FEATURES.filter(f => f.status === "beta").length;
+  const comingCount = FEATURES.filter(f => f.status === "coming-soon").length;
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">System Status</h1>
-          <p className="text-gray-500">Real-time system status and incident history</p>
-        </div>
-        <button onClick={loadStatus} className="btn-secondary">
-          <RefreshCw className="w-4 h-4" /> Refresh
-        </button>
-      </div>
-
-      <div className={`card p-6 ${hasIssues ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}>
-        <div className="flex items-center gap-3">
-          {hasIssues ? (
-            <><XCircle className="w-8 h-8 text-red-500" />
-              <div>
-                <h2 className="font-semibold text-red-800">Issues Detected</h2>
-                <p className="text-sm text-red-600">Some systems are experiencing issues</p>
-              </div>
-            </>
-          ) : (
-            <><CheckCircle className="w-8 h-8 text-green-500" />
-              <div>
-                <h2 className="font-semibold text-green-800">All Systems Operational</h2>
-                <p className="text-sm text-green-600">All services are running normally</p>
-              </div>
-            </>
-          )}
+          <h1 className="text-2xl font-bold">Platform Status</h1>
+          <p className="text-sm text-gray-500 mt-1">What&apos;s real, what&apos;s in beta, and what&apos;s coming next</p>
         </div>
       </div>
 
-      <div className="relative">
-        <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-gray-200" />
-        <div className="space-y-6">
-          {events.length === 0 ? (
-            <div className="card">
-              <div className="card-body text-center py-12">
-                <CheckCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-gray-500 font-medium">No events recorded</p>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="card p-4 text-center">
+          <p className="text-2xl font-bold text-green-600">{liveCount}</p>
+          <p className="text-xs text-gray-500 mt-1">Live</p>
+        </div>
+        <div className="card p-4 text-center">
+          <p className="text-2xl font-bold text-blue-600">{betaCount}</p>
+          <p className="text-xs text-gray-500 mt-1">Beta</p>
+        </div>
+        <div className="card p-4 text-center">
+          <p className="text-2xl font-bold text-gray-400">{comingCount}</p>
+          <p className="text-xs text-gray-500 mt-1">Coming Soon</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        {[
+          { key: "all", label: `All (${FEATURES.length})` },
+          { key: "live", label: `Live (${liveCount})` },
+          { key: "beta", label: `Beta (${betaCount})` },
+          { key: "coming-soon", label: `Coming Soon (${comingCount})` },
+        ].map(f => (
+          <button key={f.key} onClick={() => setFilter(f.key)}
+            className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${filter === f.key ? "bg-brand-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="card divide-y divide-gray-100">
+        {filtered.map(f => {
+          const s = STATUS_STYLES[f.status];
+          return (
+            <div key={f.area} className="flex items-center justify-between px-5 py-3">
+              <div>
+                <p className="text-sm font-medium">{f.area}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{f.description}</p>
               </div>
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${s.class}`}>{s.label}</span>
             </div>
-          ) : (
-            events.map((event) => {
-              const SevIcon = SEVERITY_ICONS[event.severity] || Info;
-              return (
-                <div key={event.id} className="relative pl-10">
-                  <div className={`absolute left-2 w-5 h-5 rounded-full flex items-center justify-center
-                    ${event.severity === "critical" ? "bg-red-100" :
-                      event.severity === "warning" ? "bg-yellow-100" :
-                      event.severity === "resolved" ? "bg-green-100" : "bg-blue-100"}`}>
-                    <SevIcon className={`w-3 h-3 ${
-                      event.severity === "critical" ? "text-red-500" :
-                      event.severity === "warning" ? "text-yellow-500" :
-                      event.severity === "resolved" ? "text-green-500" : "text-blue-500"}`} />
-                  </div>
-                  <div className="card p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-sm">{event.title}</h3>
-                      <div className="flex gap-2">
-                        <span className={`badge ${SEVERITY_COLORS[event.severity] || "badge-info"} text-[10px]`}>
-                          {event.severity}
-                        </span>
-                        <span className="badge badge-info text-[10px]">{event.status}</span>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-600 mb-2">{event.description}</p>
-                    <p className="text-xs text-gray-400 mb-2">
-                      <Clock className="w-3 h-3 inline mr-1" />
-                      {new Date(event.timestamp).toLocaleString()}
-                    </p>
-                    {event.updates?.length > 0 && (
-                      <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-                        {event.updates.map((u, i) => (
-                          <div key={i} className="text-xs">
-                            <p className="text-gray-500">{u.message}</p>
-                            <p className="text-gray-400 text-[10px]">{new Date(u.timestamp).toLocaleString()}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
+          );
+        })}
       </div>
+
+      <p className="text-xs text-gray-400 text-center">
+        This page is updated as each feature area reaches production readiness.
+      </p>
     </div>
   );
 }
