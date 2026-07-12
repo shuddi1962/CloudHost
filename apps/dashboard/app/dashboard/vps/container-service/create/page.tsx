@@ -17,11 +17,11 @@ const regions = [
 ];
 
 const powers = [
-  { id: "light", label: "Li", name: "Light", price: 5, ram: "512 MB", cpu: "shared vCPU" },
-  { id: "standard", label: "St", name: "Standard", price: 10, ram: "1 GB", cpu: "shared vCPU" },
-  { id: "plus", label: "Pl", name: "Plus", price: 20, ram: "2 GB", cpu: "1 vCPU" },
-  { id: "pro", label: "Pr", name: "Pro", price: 40, ram: "4 GB", cpu: "2 vCPUs" },
-  { id: "max", label: "Mx", name: "Max", price: 80, ram: "8 GB", cpu: "4 vCPUs" },
+  { id: "light", label: "Li", name: "Light", price: 5, ram: "512 MB", cpu: "shared vCPU", color: "#6b7280" },
+  { id: "standard", label: "St", name: "Standard", price: 10, ram: "1 GB", cpu: "shared vCPU", color: "#3b82f6" },
+  { id: "plus", label: "Pl", name: "Plus", price: 20, ram: "2 GB", cpu: "1 vCPU", color: "#8b5cf6" },
+  { id: "pro", label: "Pr", name: "Pro", price: 40, ram: "4 GB", cpu: "2 vCPUs", color: "#f59e0b" },
+  { id: "max", label: "Mx", name: "Max", price: 80, ram: "8 GB", cpu: "4 vCPUs", color: "#ef4444" },
 ];
 
 const scaleOptions = [1, 5, 10, 15, 20];
@@ -122,9 +122,10 @@ export default function CreateContainerServicePage() {
                 className={`text-center p-4 rounded-xl border text-sm transition-all ${
                   p.id === selectedPower ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500" : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
                 }`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold ${
-                  p.id === selectedPower ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600"
-                }`}>{p.label}</div>
+                <svg className="w-10 h-10 mx-auto mb-2" viewBox="0 0 40 40" fill="none">
+                  <circle cx="20" cy="20" r="18" fill={p.id === selectedPower ? "#4f46e5" : p.color} />
+                  <text x="20" y="26" textAnchor="middle" fontSize="16" fontWeight="bold" fill="white">{p.label}</text>
+                </svg>
                 <p className="font-semibold text-gray-800">{p.name}</p>
                 <p className="text-lg font-bold text-gray-900">${p.price}</p>
                 <p className="text-[10px] text-gray-400">USD per node</p>
@@ -150,13 +151,13 @@ export default function CreateContainerServicePage() {
             <span className="text-sm text-gray-500 ml-2">×{scale}</span>
           </div>
 
-          {/* Cost */}
+          {/* Cost summary */}
           <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
             <p className="text-sm text-gray-700">
               Your container service will cost <strong className="text-lg text-indigo-700">${totalCost} USD</strong> per month.
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Outbound data transfer beyond your plan's allowance is billed at $0.01 per GB. See our <Link href="#" className="text-indigo-600 hover:underline">pricing page</Link> for details.
+              Outbound data transfer is billed at $0.01 per GB beyond plan allowance. See our <Link href="#" className="text-indigo-600 hover:underline">pricing page</Link> for details.
             </p>
           </div>
         </div>
@@ -202,7 +203,7 @@ export default function CreateContainerServicePage() {
               Your container service will cost <strong className="text-lg text-indigo-700">${totalCost} USD</strong> per month.
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Outbound data transfer beyond your plan's allowance is billed at $0.01 per GB. See our <Link href="#" className="text-indigo-600 hover:underline">pricing page</Link> for details.
+              Outbound data transfer is billed at $0.01 per GB beyond plan allowance. See our <Link href="#" className="text-indigo-600 hover:underline">pricing page</Link> for details.
             </p>
           </div>
           <div className="flex items-center gap-3 text-sm">

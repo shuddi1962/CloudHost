@@ -18,6 +18,46 @@ const regions = [
 
 const platforms = ["Application Images", "Base Operating Systems"] as const;
 
+const blueprintLogos: Record<string, string> = {
+  "WordPress": "#21759b",
+  "LAMP Stack": "#44a833",
+  "Node.js": "#339933",
+  "Ghost": "#15171A",
+  "GitLab CE": "#E24329",
+  "Django": "#092e20",
+  "Redmine": "#b32025",
+  "n8n": "#ea4b35",
+  "Nginx": "#009639",
+  "Joomla": "#f44321",
+  "Drupal": "#0678be",
+  "PrestaShop": "#df0067",
+  "Plesk": "#52b6e8",
+  "cPanel & WHM": "#ff6c2c",
+  "Ruby on Rails": "#cc0000",
+  "MEAN Stack": "#3fb27f",
+  "Ubuntu": "#E95420",
+  "Debian": "#D70A53",
+  "AlmaLinux": "#1a4d8c",
+  "Rocky Linux": "#10b981",
+  "Fedora": "#294172",
+};
+
+const osLogos: Record<string, string> = {
+  "Ubuntu": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%23E95420'/%3E%3Ctext x='12' y='16' text-anchor='middle' font-size='12' font-weight='bold' fill='white'%3EU%3C/text%3E%3C/svg%3E",
+};
+
+function BlueprintIcon({ name, color }: { name: string; color: string }) {
+  const letter = name.charAt(0);
+  return (
+    <svg className="w-10 h-10" viewBox="0 0 40 40" fill="none">
+      <rect width="40" height="40" rx="10" fill={color} />
+      <text x="20" y="26" textAnchor="middle" fontSize="18" fontWeight="bold" fill="white">
+        {letter}
+      </text>
+    </svg>
+  );
+}
+
 const blueprints: Record<string, { name: string; version: string; desc: string }[]> = {
   "Application Images": [
     { name: "WordPress", version: "7.0", desc: "Pre-configured WordPress installation ready for immediate use." },
@@ -94,9 +134,6 @@ export default function CreateInstancePage() {
     setCreateError("");
     try {
       const sizeObj = sizes.find(s => s.price === selectedSize);
-      const imageSlug = platform === "Application Images"
-        ? `${selectedBlueprint.toLowerCase().replace(/[^a-z0-9]/g, "-")}-24-04`
-        : `${selectedBlueprint.toLowerCase().replace(/[^a-z0-9]/g, "-")}-24-04-x64`;
       const res = await fetch("/api/vps/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -106,7 +143,7 @@ export default function CreateInstancePage() {
           region: selectedRegion,
           blueprint: selectedBlueprint,
           platform: platform.toLowerCase(),
-          image: imageSlug,
+          image: null,
           tags: tags.filter(t => t.key).map(t => `${t.key}=${t.value}`),
         }),
       });
@@ -191,9 +228,13 @@ export default function CreateInstancePage() {
                     ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500"
                     : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
                 }`}>
-                <p className="font-medium truncate">{bp.name}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{bp.version}</p>
-
+                <div className="flex items-center gap-3">
+                  <BlueprintIcon name={bp.name} color={blueprintLogos[bp.name] || "#6366f1"} />
+                  <div>
+                    <p className="font-medium truncate">{bp.name}</p>
+                    <p className="text-xs text-gray-400">{bp.version}</p>
+                  </div>
+                </div>
               </button>
             ))}
           </div>
@@ -201,9 +242,12 @@ export default function CreateInstancePage() {
           {/* Blueprint details */}
           {showBlueprintDetail && currentBlueprintObj && (
             <div className="border border-gray-200 rounded-xl p-5 bg-gray-50">
-              <div>
-                <h3 className="text-base font-semibold">{currentBlueprintObj.name}</h3>
-                <p className="text-sm text-gray-500">{currentBlueprintObj.version}</p>
+              <div className="flex items-center gap-4">
+                <BlueprintIcon name={currentBlueprintObj.name} color={blueprintLogos[currentBlueprintObj.name] || "#6366f1"} />
+                <div>
+                  <h3 className="text-base font-semibold">{currentBlueprintObj.name}</h3>
+                  <p className="text-sm text-gray-500">{currentBlueprintObj.version}</p>
+                </div>
               </div>
               <div className="text-sm text-gray-700 space-y-1 mb-4 mt-3">
                 {currentBlueprintObj.desc && (
@@ -260,7 +304,7 @@ export default function CreateInstancePage() {
 
           <hr className="border-gray-200" />
 
-          {/* Auto snapshots */}
+          {/* Auto backups */}
           <div>
             <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" checked={autoSnapshots} onChange={(e) => setAutoSnapshots(e.target.checked)}

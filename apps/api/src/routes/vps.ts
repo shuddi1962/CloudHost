@@ -3,42 +3,145 @@ import { db, projects } from "@cloudhost/db";
 
 export const vpsRouter = new Hono();
 
-vpsRouter.post("/deploy", async (c) => {
-  const { plan, projectId, name, region } = await c.req.json();
-  const server = {
-    id: Math.random().toString(36).slice(2, 10),
-    name: name || `${plan}-server`,
-    plan,
-    region: region || "us-east",
-    status: "provisioning",
-    ip: "0.0.0.0",
-    os: "Ubuntu 22.04",
-    cpu: plan.includes("1") ? "1 vCPU" : plan.includes("2") ? "2 vCPU" : "4 vCPU",
-    ram: plan.includes("1") ? "1 GB" : plan.includes("2") ? "4 GB" : "8 GB",
-    storage: plan.includes("1") ? "25 GB" : plan.includes("2") ? "50 GB" : "100 GB",
-    createdAt: new Date().toISOString(),
-  };
+const DO_API = "https://api.digitalocean.com/v2";
 
-  setTimeout(async () => {
-    server.status = "running";
-    server.ip = `10.0.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
-  }, 5000);
+const blueprintImageMap: Record<string, string> = {
+  "wordpress": "wordpress-24-04",
+  "lamp stack": "lamp-24-04",
+  "node.js": "nodejs-24-04",
+  "ghost": "ghost-24-04",
+  "gitlab ce": "gitlab-24-04",
+  "nginx": "nginx-24-04",
+  "joomla": "joomla-24-04",
+  "drupal": "drupal-24-04",
+  "mean stack": "mean-24-04",
+  "plesk": "plesk-24-04",
+};
 
-  return c.json({ server }, 201);
+async function doFetch(path: string, options: RequestInit = {}) {
+  const token = process.env.DIGITALOCEAN_API_TOKEN;
+  if (!token) throw new Error("DIGITALOCEAN_API_TOKEN is not configured");
+  const res = await fetch(`${DO_API}${path}`, {
+    ...options,
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`DigitalOcean API error (${res.status}): ${body}`);
+  }
+  return res.json();
+}
+
+const dropletStore = new Map<string, any>();
+
+vpsRouter.post("/", async (c) => {
+  const { name, plan, region, blueprint, platform } = await c.req.json();
+
+  let imageSlug = blueprintImageMap[blueprint.toLowerCase()];
+  if (!imageSlug) {
+    const baseOsMap: Record<string, string> = {
+      "ubuntu": "ubuntu-24-04-x64",
+      "debian": "debian-12-x64",
+      "almalinux": "almalinux-9-x64",
+      "rocky linux": "rocky-linux-9-x64",
+      "fedora": "fedora-41-x64",
+    };
+    imageSlug = baseOsMap[blueprint.toLowerCase()] || "ubuntu-24-04-x64";
+  }
+
+  try {
+    const data = await doFetch("/droplets", {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        region,
+        size: plan,
+        image: imageSlug,
+        tags: [`cloudhost-${platform}`],
+      }),
+    });
+
+    const droplet = data.droplet;
+    dropletStore.set(droplet.id.toString(), { ...droplet, status: "provisioning" });
+
+    pollForIp(droplet.id.toString());
+
+    return c.json({ droplet, status: "provisioning" }, 201);
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
 });
 
-vpsRouter.get("/list", async (c) => {
-  return c.json({ servers: [] });
+async function pollForIp(dropletId: string) {
+  const maxAttempts = 30;
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(r => setTimeout(r, 5000));
+    try {
+      const data = await doFetch(`/droplets/${dropletId}`);
+      const droplet = data.droplet;
+      const publicIp = droplet.networks?.v4?.find((n: any) => n.type === "public")?.ip_address;
+      dropletStore.set(dropletId, {
+        ...droplet,
+        status: droplet.status,
+        ip: publicIp || null,
+      });
+      if (droplet.status === "active" && publicIp) break;
+    } catch {
+      break;
+    }
+  }
+}
+
+vpsRouter.get("/", async (c) => {
+  const droplets = Array.from(dropletStore.values());
+  return c.json({ servers: droplets });
+});
+
+vpsRouter.get("/:id", async (c) => {
+  const id = c.req.param("id");
+  const local = dropletStore.get(id);
+  if (local) return c.json({ droplet: local });
+  try {
+    const data = await doFetch(`/droplets/${id}`);
+    return c.json({ droplet: data.droplet });
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
 });
 
 vpsRouter.post("/:id/action", async (c) => {
   const id = c.req.param("id");
   const { action } = await c.req.json();
-  const actions: Record<string, string> = {
-    start: "Server started",
-    stop: "Server stopped",
-    restart: "Server restarting",
-    rebuild: "Server rebuilding",
+  const actionMap: Record<string, string> = {
+    start: "power_on",
+    stop: "power_off",
+    restart: "reboot",
+    rebuild: "rebuild",
   };
-  return c.json({ message: actions[action] || "Action executed", serverId: id });
+  const doAction = actionMap[action];
+  if (!doAction) return c.json({ error: "Unknown action" }, 400);
+  try {
+    await doFetch(`/droplets/${id}/actions`, {
+      method: "POST",
+      body: JSON.stringify({ type: doAction }),
+    });
+    return c.json({ message: `Action '${action}' executed`, dropletId: id });
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
+vpsRouter.delete("/:id", async (c) => {
+  const id = c.req.param("id");
+  try {
+    await doFetch(`/droplets/${id}`, { method: "DELETE" });
+    dropletStore.delete(id);
+    return c.json({ message: "Droplet deleted" });
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
 });
