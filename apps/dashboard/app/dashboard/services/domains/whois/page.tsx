@@ -13,7 +13,7 @@ export default function WhoisPage() {
   const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/whois/history`, { headers })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/whois/history`, { headers })
       .then(r => r.json())
       .then(data => setHistory(data.history || []))
       .catch(() => {});
@@ -24,7 +24,7 @@ export default function WhoisPage() {
     if (!query.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/whois`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/whois`, {
         method: "POST", headers,
         body: JSON.stringify({ domain: query.trim() }),
       });

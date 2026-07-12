@@ -20,7 +20,7 @@ interface VpnSubscription {
   configPreview: string; status: string; createdAt: string;
 }
 
-const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/business-tools/vpn`;
+const API = `${process.env.NEXT_PUBLIC_API_URL}/api/business-tools/vpn`;
 
 export default function VpnPage() {
   const [plans, setPlans] = useState<VpnPlan[]>([

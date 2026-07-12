@@ -23,7 +23,7 @@ export default function DomainMarketplacePage() {
 
   const fetchListings = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/marketplace`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/marketplace`, { headers });
       const data = await res.json();
       setListings(data.listings || []);
     } catch (e) {}
@@ -31,7 +31,7 @@ export default function DomainMarketplacePage() {
 
   const fetchMyListings = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/marketplace/my-listings`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/marketplace/my-listings`, { headers });
       const data = await res.json();
       setMyListings(data.listings || []);
     } catch (e) {}
@@ -43,7 +43,7 @@ export default function DomainMarketplacePage() {
 
   const listDomain = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/marketplace`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/marketplace`, {
       method: "POST", headers,
       body: JSON.stringify({ domain, price: Number(price), category, description, makeOffer, listingType: "fixed" }),
     });
@@ -55,7 +55,7 @@ export default function DomainMarketplacePage() {
   };
 
   const viewOffers = async (id: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/marketplace/${id}/offers`, { headers });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/marketplace/${id}/offers`, { headers });
     const data = await res.json();
     setSelectedOffers(data.offers || []);
   };
@@ -63,7 +63,7 @@ export default function DomainMarketplacePage() {
   const submitOffer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!offerListingId) return;
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/marketplace/${offerListingId}/offer`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/marketplace/${offerListingId}/offer`, {
       method: "POST", headers,
       body: JSON.stringify({ amount: Number(offerAmount), message: "" }),
     });

@@ -39,7 +39,7 @@ function relativeDate(dateStr: string): string {
 }
 
 async function fetchQueue(token: string): Promise<QueueItem[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/admin/queue`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketplace/admin/queue`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) throw new Error("Failed to fetch queue")
@@ -52,7 +52,7 @@ async function updateStatus(
   id: string,
   action: "approve" | "reject" | "review"
 ): Promise<void> {
-  const endpoint = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/admin/queue/${id}/${action}`
+  const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/api/marketplace/admin/queue/${id}/${action}`
   const res = await fetch(endpoint, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },

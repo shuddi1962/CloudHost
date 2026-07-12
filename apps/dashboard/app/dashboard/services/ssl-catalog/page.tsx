@@ -50,7 +50,7 @@ export default function SslCatalogPage() {
       const params = new URLSearchParams();
       if (brand) params.set("brand", brand);
       if (validation) params.set("validation", validation);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/ssl-catalog?${params}`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/ssl-catalog?${params}`, { headers });
       const data = await res.json();
       if (data.certs) setCerts(data.certs);
       else if (data.sslCertificates) setCerts(data.sslCertificates);
@@ -60,7 +60,7 @@ export default function SslCatalogPage() {
 
   const fetchMyCerts = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/ssl-catalog/my-certs`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/ssl-catalog/my-certs`, { headers });
       const data = await res.json();
       setMyCerts(data.certificates || data.myCertificates || []);
     } catch {}
@@ -71,7 +71,7 @@ export default function SslCatalogPage() {
   const seedCatalog = async () => {
     setSeeding(true);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/ssl-catalog/seed`, { method: "POST", headers });
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/ssl-catalog/seed`, { method: "POST", headers });
       await fetchCerts();
     } catch {} finally { setSeeding(false); }
   };
@@ -88,7 +88,7 @@ export default function SslCatalogPage() {
     if (!domain.trim() || !selectedCert) return;
     setPurchasing(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/ssl-catalog/purchase`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/ssl-catalog/purchase`, {
         method: "POST", headers,
         body: JSON.stringify({ certificateId: selectedCert.id, domain: domain.trim() }),
       });

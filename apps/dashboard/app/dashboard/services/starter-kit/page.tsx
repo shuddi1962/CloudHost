@@ -34,7 +34,7 @@ export default function StarterKitPage() {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/starter-kit`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/starter-kit`, { headers });
       const data = await res.json();
       setProjects(data.projects || data.kits || []);
     } catch {} finally { setLoading(false); }
@@ -47,7 +47,7 @@ export default function StarterKitPage() {
     if (!businessName.trim()) return;
     setApplying(true);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/starter-kit`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/starter-kit`, {
         method: "POST", headers,
         body: JSON.stringify({ businessName: businessName.trim(), businessType, kitType, llcState }),
       });
@@ -60,7 +60,7 @@ export default function StarterKitPage() {
   const applyLlc = async (id: string) => {
     setApplying(true);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/starter-kit/${id}/apply-llc`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/starter-kit/${id}/apply-llc`, {
         method: "POST", headers,
       });
       await fetchProjects();

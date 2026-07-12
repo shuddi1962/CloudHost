@@ -46,8 +46,8 @@ export default function UniversalDeployPage() {
     const token = localStorage.getItem("token");
     try {
       const [depRes, bpRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/docker/deployments`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/docker/buildpacks`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/docker/deployments`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/docker/buildpacks`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const depData = await depRes.json();
       const bpData = await bpRes.json();
@@ -65,7 +65,7 @@ export default function UniversalDeployPage() {
     setLogs(["🚀 Starting deployment..."]);
     setShowForm(false);
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/docker/deploy`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/docker/deploy`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
@@ -86,7 +86,7 @@ export default function UniversalDeployPage() {
   const detectFramework = async () => {
     const token = localStorage.getItem("token");
     const files = ["package.json", "index.js", "requirements.txt", "main.py", "Dockerfile", "go.mod", "Cargo.toml", "composer.json", "Gemfile", "pom.xml", "index.html"];
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/docker/detect`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/docker/detect`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ files }),
@@ -98,7 +98,7 @@ export default function UniversalDeployPage() {
   const deleteDeployment = async (id: string) => {
     if (!confirm("Delete this deployment?")) return;
     const token = localStorage.getItem("token");
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/docker/deployments/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/docker/deployments/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     fetchData();
   };
 
@@ -230,7 +230,7 @@ export default function UniversalDeployPage() {
               <div className="flex items-center gap-2">
                 <button onClick={async () => {
                   const token = localStorage.getItem("token");
-                  await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/docker/deployments/${dep.id}/restart`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+                  await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/docker/deployments/${dep.id}/restart`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
                   fetchData();
                 }} className="btn-secondary text-xs px-3 py-1.5">Restart</button>
                 <button onClick={() => deleteDeployment(dep.id)} className="text-gray-400 hover:text-red-500">

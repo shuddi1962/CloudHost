@@ -39,8 +39,8 @@ export default function TemplatesPage() {
     setLoading(true);
     const token = localStorage.getItem("token");
     const url = category === "all"
-      ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/templates`
-      : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/templates?category=${category}`;
+      ? `${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/templates`
+      : `${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/templates?category=${category}`;
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((data) => setTemplates(data.templates || []))
@@ -50,7 +50,7 @@ export default function TemplatesPage() {
   const seed = async () => {
     setSeeding(true);
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/templates/seed`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/templates/seed`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

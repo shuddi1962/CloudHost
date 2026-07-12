@@ -31,7 +31,7 @@ export default function EducationalPartnershipsPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/educational-partnerships`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/educational-partnerships`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -42,7 +42,7 @@ export default function EducationalPartnershipsPage() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/educational-partnerships`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/educational-partnerships`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ ...form, studentCount: parseInt(form.studentCount) }),

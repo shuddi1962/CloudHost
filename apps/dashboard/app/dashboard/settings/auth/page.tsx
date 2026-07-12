@@ -29,8 +29,8 @@ export default function AuthSettingsPage() {
 
     try {
       const [provRes, infoRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/auth-providers/organization/00000000-0000-0000-0000-000000000000`, { headers }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/auth-providers/providers-info`, { headers }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth-providers/organization/00000000-0000-0000-0000-000000000000`, { headers }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth-providers/providers-info`, { headers }),
       ]);
       const provData = await provRes.json();
       const infoData = await infoRes.json();
@@ -48,7 +48,7 @@ export default function AuthSettingsPage() {
     e.preventDefault();
     if (!configuring) return;
     const token = localStorage.getItem("token");
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/auth-providers/configure`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth-providers/configure`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
@@ -64,7 +64,7 @@ export default function AuthSettingsPage() {
 
   const toggleProvider = async (id: string) => {
     const token = localStorage.getItem("token");
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/auth-providers/${id}/toggle`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth-providers/${id}/toggle`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

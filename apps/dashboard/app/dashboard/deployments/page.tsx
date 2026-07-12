@@ -65,7 +65,7 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
               }),
             });
           } else {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/deployments/${dep.id}/deploy`, {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/deployments/${dep.id}/deploy`, {
               method: "POST", headers: { Authorization: `Bearer ${token}` },
             });
           }
@@ -104,7 +104,7 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
               body: JSON.stringify({ status: "ready" }),
             });
           } else {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/deployments/${dep.id}`, {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/deployments/${dep.id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({ status: "running", domain: dep.domain?.replace('preview.', '') || dep.domain }),
@@ -147,7 +147,7 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
           if (isWebhook) {
             await fetch(`/api/webhook-deployments/${dep.id}`, { method: "DELETE" });
           } else {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/deployments/${dep.id}`, {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/deployments/${dep.id}`, {
               method: "DELETE", headers: { Authorization: `Bearer ${token}` },
             });
           }
@@ -170,7 +170,7 @@ function DeploymentActions({ dep, onRefresh }: { dep: any; onRefresh: () => void
         });
       } else {
         const token = localStorage.getItem("token");
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/deployments/${dep.id}`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/deployments/${dep.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ domain: domainInput }),
@@ -328,7 +328,7 @@ export default function DeploymentsPage() {
     const token = localStorage.getItem("token");
     try {
       const [regRes, whRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/deployments`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/deployments`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch("/api/webhook-deployments"),

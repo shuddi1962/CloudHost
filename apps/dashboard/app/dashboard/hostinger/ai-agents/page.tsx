@@ -31,7 +31,7 @@ export default function AiAgentsPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/ai-agents`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/ai-agents`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -42,7 +42,7 @@ export default function AiAgentsPage() {
   const deploy = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/ai-agents`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/ai-agents`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),
@@ -57,7 +57,7 @@ export default function AiAgentsPage() {
 
   const restart = async (id: string) => {
     const token = localStorage.getItem("token");
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/ai-agents/${id}/restart`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/ai-agents/${id}/restart`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -65,7 +65,7 @@ export default function AiAgentsPage() {
 
   const deleteAgent = async (id: string) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/ai-agents/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/ai-agents/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

@@ -33,7 +33,7 @@ export default function LogoMakerPage() {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/logo-maker`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/logo-maker`, { headers });
       const data = await res.json();
       setProjects(data.projects || data.logos || []);
     } catch {} finally { setLoading(false); }
@@ -50,7 +50,7 @@ export default function LogoMakerPage() {
     if (!brandName.trim()) return;
     setGenerating(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/logo-maker`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/logo-maker`, {
         method: "POST", headers,
         body: JSON.stringify({ brandName: brandName.trim(), industry, style, colors }),
       });

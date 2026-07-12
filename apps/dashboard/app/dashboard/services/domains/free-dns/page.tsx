@@ -14,7 +14,7 @@ export default function FreeDnsPage() {
 
   const fetchDns = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/free-dns`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/free-dns`, { headers });
       const data = await res.json();
       setDnsList(data.freeDns || []);
     } catch (e) {
@@ -28,7 +28,7 @@ export default function FreeDnsPage() {
 
   const addDomain = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/free-dns`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/free-dns`, {
       method: "POST", headers,
       body: JSON.stringify({ domain }),
     });
@@ -40,7 +40,7 @@ export default function FreeDnsPage() {
   };
 
   const deleteDns = async (id: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/free-dns/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/free-dns/${id}`, {
       method: "DELETE", headers,
     });
     if (res.ok) {

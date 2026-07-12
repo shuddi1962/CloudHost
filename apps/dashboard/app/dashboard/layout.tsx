@@ -102,22 +102,6 @@ const supabaseNav = [
   { href: "/dashboard/supabase/logs", label: "Logs", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
 ];
 
-const gcpNav = [
-  { href: "/dashboard/gcp", label: "GCP Overview", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" },
-  { href: "/dashboard/gcp/compute", label: "Compute", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
-  { href: "/dashboard/gcp/storage", label: "Storage", icon: "M4 7v10c2.21 0 4-1.79 4-4V7c0-2.21-1.79-4-4-4z" },
-  { href: "/dashboard/gcp/ai", label: "AI / ML", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
-];
-const gcpNavMore = [
-  { href: "/dashboard/gcp/databases", label: "Databases", icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4" },
-  { href: "/dashboard/gcp/networking", label: "Networking", icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9" },
-  { href: "/dashboard/gcp/analytics", label: "Analytics", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" },
-  { href: "/dashboard/gcp/security", label: "Security", icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" },
-  { href: "/dashboard/gcp/iam", label: "IAM & Admin", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857" },
-  { href: "/dashboard/gcp/observability", label: "Observability", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
-  { href: "/dashboard/gcp/serverless", label: "Serverless", icon: "M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" },
-];
-
 const storageNav = [
   { href: "/dashboard/files", label: "File Manager", icon: "M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" },
   { href: "/dashboard/backups?databaseId=demo", label: "Backups", icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" },
@@ -190,7 +174,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   setupDemoApi();
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [showGcpMore, setShowGcpMore] = useState(false);
   const [showHostingerMore, setShowHostingerMore] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -217,9 +200,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (!user) return null;
 
-  const roleBadge = user.isSuperAdmin
-    ? { label: "Super Admin", class: "bg-red-100 text-red-700" }
-    : user.isAdmin
+  const roleBadge = (user.isAdmin || user.isSuperAdmin)
     ? { label: "Admin", class: "bg-amber-100 text-amber-700" }
     : { label: "User", class: "bg-blue-100 text-blue-700" };
 
@@ -237,7 +218,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-            {(user.isAdmin || user.isSuperAdmin) && renderNavGroup("Admin", adminNav, pathname)}
+            {user.isAdmin && renderNavGroup("Admin", adminNav, pathname)}
             {renderNavGroup("General", topNav, pathname)}
             {renderNavGroup("Hosting", hostingNav, pathname)}
             {renderNavGroup("Databases", databaseNav, pathname)}
@@ -245,11 +226,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {renderNavGroup("Storage", storageNav, pathname)}
             {renderNavGroup("Automation", automationNav, pathname)}
             {renderNavGroup("Tools", toolsNav, pathname)}
-            {renderNavGroup("GCP", gcpNav, pathname)}
-            {showGcpMore && renderNavGroup("", gcpNavMore, pathname)}
-            <button onClick={() => setShowGcpMore(!showGcpMore)} className="w-full text-left text-[11px] text-gray-400 hover:text-gray-600 px-3 py-1 font-medium transition-colors">
-              {showGcpMore ? "− Hide less common services" : `+ Show all ${gcpNavMore.length} Google Cloud services`}
-            </button>
             {renderNavGroup("Cloudflare", cloudflareNav, pathname)}
             {renderNavGroup("Supabase", supabaseNav, pathname)}
             {renderNavGroup("Marketplace", marketplaceNav, pathname)}

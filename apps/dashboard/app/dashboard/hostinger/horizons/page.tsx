@@ -38,7 +38,7 @@ export default function HorizonsPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/horizons`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/horizons`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -58,7 +58,7 @@ export default function HorizonsPage() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/horizons`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/horizons`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),
@@ -75,7 +75,7 @@ export default function HorizonsPage() {
     if (!prompt) return;
     setGenerating(id);
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/horizons/${id}/generate`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/horizons/${id}/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ prompt }),
@@ -91,7 +91,7 @@ export default function HorizonsPage() {
   const publish = async (id: string) => {
     setPublishing(id);
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/horizons/${id}/publish`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/horizons/${id}/publish`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

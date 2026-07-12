@@ -16,7 +16,7 @@ export default function HandshakePage() {
 
   const fetchDomains = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/handshake`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/handshake`, { headers });
       const data = await res.json();
       setDomains(data.domains || []);
     } catch (e) {
@@ -30,7 +30,7 @@ export default function HandshakePage() {
 
   const register = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/handshake`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/handshake`, {
       method: "POST", headers,
       body: JSON.stringify({ domain, registrationPeriod: years, walletAddress, price: years * 15 }),
     });

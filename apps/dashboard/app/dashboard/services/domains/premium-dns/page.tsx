@@ -26,7 +26,7 @@ export default function PremiumDnsPage() {
 
   const fetchSubscriptions = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/premium-dns`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/premium-dns`, { headers });
       const data = await res.json();
       setSubscriptions(data.premiumDns || []);
     } catch (e) {
@@ -49,7 +49,7 @@ export default function PremiumDnsPage() {
   const subscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     const priceMap = { basic: 5.99, pro: 14.99, business: 39.99 };
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/premium-dns`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/premium-dns`, {
       method: "POST", headers,
       body: JSON.stringify({ domain, plan, dnssec, ddosProtection: ddos, analytics, geoDns, templateManagement: templates, price: priceMap[plan as keyof typeof priceMap] }),
     });
@@ -61,7 +61,7 @@ export default function PremiumDnsPage() {
   };
 
   const cancel = async (id: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/premium-dns/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/premium-dns/${id}`, {
       method: "DELETE", headers,
     });
     if (res.ok) {

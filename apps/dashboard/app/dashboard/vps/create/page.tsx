@@ -289,7 +289,7 @@ export default function CreateInstancePage() {
           {/* SSH key */}
           <div>
             <h3 className="text-base font-semibold mb-1">SSH Key</h3>
-            <p className="text-xs text-gray-500 mb-3">Select or add an SSH key to access your instance. <Link href="#" className="text-indigo-600 hover:underline">Manage SSH keys</Link></p>
+            <p className="text-xs text-gray-500 mb-3">Select or add an SSH key to access your instance. <Link href="/dashboard/credentials" className="text-indigo-600 hover:underline">Manage SSH keys</Link></p>
             <div className="flex items-center gap-3">
               {["default", "custom", "upload"].map((opt) => (
                 <button key={opt} onClick={() => setSshOption(opt)}
@@ -389,7 +389,7 @@ export default function CreateInstancePage() {
 
       {/* Footer */}
       <div className="flex items-center justify-between border-t border-gray-200 pt-6">
-        <p className="text-xs text-gray-400">By creating an instance, you agree to our <Link href="#" className="text-indigo-600 hover:underline">Terms of Service</Link>.</p>
+        <p className="text-xs text-gray-400">By creating an instance, you agree to our <Link href="/legal" className="text-indigo-600 hover:underline">Terms of Service</Link>.</p>
         {createError && <p className="text-sm text-red-600">{createError}</p>}
         <button onClick={handleCreate} disabled={creating}
           className="px-8 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50">

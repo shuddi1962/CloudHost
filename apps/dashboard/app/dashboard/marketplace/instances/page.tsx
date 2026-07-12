@@ -46,7 +46,7 @@ export default function InstancesPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/instances`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketplace/instances`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -59,7 +59,7 @@ export default function InstancesPage() {
     const token = localStorage.getItem("token");
     const app = demoApps.find((a) => a.id === selectedApp);
     const plan = plans.find((p) => p.id === selectedPlan);
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/instances`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketplace/instances`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
@@ -76,7 +76,7 @@ export default function InstancesPage() {
     });
     setProvisioning(false);
     setShowProvision(false);
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/instances`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketplace/instances`, {
       headers: { Authorization: `Bearer ${token}` },
     }).then((r) => r.json());
     setInstances(res.instances || []);

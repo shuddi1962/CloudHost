@@ -15,7 +15,7 @@ export default function PreviewDeploymentsPage() {
 
   const fetchPreviews = async () => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/preview-deployments/deployment/${deploymentId}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/preview-deployments/deployment/${deploymentId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -28,7 +28,7 @@ export default function PreviewDeploymentsPage() {
   const createPreview = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/preview-deployments`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/preview-deployments`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ ...form, deploymentId }),
@@ -42,7 +42,7 @@ export default function PreviewDeploymentsPage() {
 
   const rebuild = async (id: string) => {
     const token = localStorage.getItem("token");
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/preview-deployments/${id}/rebuild`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/preview-deployments/${id}/rebuild`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -52,7 +52,7 @@ export default function PreviewDeploymentsPage() {
   const deletePreview = async (id: string) => {
     if (!confirm("Delete this preview deployment?")) return;
     const token = localStorage.getItem("token");
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/preview-deployments/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/preview-deployments/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

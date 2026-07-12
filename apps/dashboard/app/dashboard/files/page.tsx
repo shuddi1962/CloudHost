@@ -25,7 +25,7 @@ export default function FileManagerPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/files/list/${path}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/files/list/${path}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -54,7 +54,7 @@ export default function FileManagerPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/files/read`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/files/read`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ filePath }),
@@ -73,7 +73,7 @@ export default function FileManagerPage() {
     setSaving(true);
     try {
       const token = localStorage.getItem("token");
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/files/write`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/files/write`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ filePath: selectedFile.path, content: editorContent }),
@@ -91,7 +91,7 @@ export default function FileManagerPage() {
       ? { filePath: currentPath ? `${currentPath}/${newName}` : newName, content: "" }
       : { filePath: currentPath ? `${currentPath}/${newName}` : newName };
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}${endpoint}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(body),
@@ -108,7 +108,7 @@ export default function FileManagerPage() {
   const deleteItem = async (itemPath: string) => {
     if (!confirm("Delete this item?")) return;
     const token = localStorage.getItem("token");
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/files/delete`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/files/delete`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ filePath: itemPath }),

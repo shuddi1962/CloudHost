@@ -27,7 +27,7 @@ export default function ApiPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/api-keys`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/api-keys`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -47,7 +47,7 @@ export default function ApiPage() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/api-keys`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/api-keys`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ ...form, expiry: parseInt(form.expiry) }),
@@ -62,7 +62,7 @@ export default function ApiPage() {
 
   const deleteKey = async (id: string) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/api-keys/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/api-keys/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

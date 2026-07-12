@@ -7,7 +7,7 @@ import { join } from "path";
 import { tmpdir } from "os";
 import { randomBytes } from "crypto";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const UPLOAD_DIR = join(tmpdir(), "cloudhost-uploads");
 
 interface UploadedFile {

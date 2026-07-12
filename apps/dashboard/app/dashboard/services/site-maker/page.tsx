@@ -31,7 +31,7 @@ export default function SiteMakerPage() {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/site-maker`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/site-maker`, { headers });
       const data = await res.json();
       setProjects(data.projects || data.sites || []);
     } catch {} finally { setLoading(false); }
@@ -43,7 +43,7 @@ export default function SiteMakerPage() {
     e.preventDefault();
     if (!name.trim()) return;
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/site-maker`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/site-maker`, {
         method: "POST", headers,
         body: JSON.stringify({ name: name.trim(), template, industry }),
       });
@@ -56,7 +56,7 @@ export default function SiteMakerPage() {
   const publish = async (id: string) => {
     setPublishing(id);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/site-maker/${id}/publish`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/site-maker/${id}/publish`, {
         method: "POST", headers,
         body: customDomain ? JSON.stringify({ customDomain: customDomain.trim() }) : undefined,
       });

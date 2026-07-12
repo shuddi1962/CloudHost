@@ -12,7 +12,7 @@ export default function NewHostingAccountPage() {
     e.preventDefault();
     setLoading(true);
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hosting/account`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hosting/account`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),

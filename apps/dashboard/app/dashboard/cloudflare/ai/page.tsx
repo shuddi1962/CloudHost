@@ -3,11 +3,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const services = [
-  { name: "Workers AI", desc: "Edge AI inference models", icon: "🧠", route: "/cloudflare/ai/workers-ai", color: "bg-purple-500" },
-  { name: "Vectorize", desc: "Vector database & similarity search", icon: "📐", route: "/cloudflare/ai/vectorize", color: "bg-pink-500" },
-  { name: "AI Gateway", desc: "AI gateway with caching & rate limiting", icon: "🚪", route: "/cloudflare/ai/gateway", color: "bg-indigo-500" },
-  { name: "AI Search", desc: "Instant retrieval & semantic search", icon: "🔍", route: "/cloudflare/ai/search", color: "bg-blue-500" },
-  { name: "AI Agents", desc: "Build stateful AI agents", icon: "🤖", route: "/cloudflare/ai/agents", color: "bg-violet-500" },
+  { name: "Workers AI", desc: "Edge AI inference models", icon: "🧠", route: "/cloudflare/ai/workers-ai", color: "bg-purple-500", comingSoon: false },
+  { name: "Vectorize", desc: "Vector database & similarity search", icon: "📐", route: "/cloudflare/ai/vectorize", color: "bg-pink-500", comingSoon: true },
+  { name: "AI Gateway", desc: "AI gateway with caching & rate limiting", icon: "🚪", route: "/cloudflare/ai/gateway", color: "bg-indigo-500", comingSoon: true },
+  { name: "AI Search", desc: "Instant retrieval & semantic search", icon: "🔍", route: "/cloudflare/ai/search", color: "bg-blue-500", comingSoon: true },
+  { name: "AI Agents", desc: "Build stateful AI agents", icon: "🤖", route: "/cloudflare/ai/agents", color: "bg-violet-500", comingSoon: true },
 ];
 
 export default function AiPage() {
@@ -29,13 +29,24 @@ export default function AiPage() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {services.map((s) => (
-          <Link key={s.route} href={s.route}
-            className="block p-5 rounded-xl border border-gray-200 bg-white hover:shadow-lg hover:border-brand-200 transition-all"
-          >
-            <div className={`w-10 h-10 ${s.color} rounded-lg flex items-center justify-center text-white text-lg mb-3`}>{s.icon}</div>
-            <h3 className="font-semibold">{s.name}</h3>
-            <p className="text-sm text-gray-500 mt-1">{s.desc}</p>
-          </Link>
+          s.comingSoon ? (
+            <div key={s.route} className="block p-5 rounded-xl border border-gray-200 bg-white opacity-60 cursor-not-allowed">
+              <div className={`w-10 h-10 ${s.color} rounded-lg flex items-center justify-center text-white text-lg mb-3`}>{s.icon}</div>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">{s.name}</h3>
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">Coming Soon</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">{s.desc}</p>
+            </div>
+          ) : (
+            <Link key={s.route} href={s.route}
+              className="block p-5 rounded-xl border border-gray-200 bg-white hover:shadow-lg hover:border-brand-200 transition-all"
+            >
+              <div className={`w-10 h-10 ${s.color} rounded-lg flex items-center justify-center text-white text-lg mb-3`}>{s.icon}</div>
+              <h3 className="font-semibold">{s.name}</h3>
+              <p className="text-sm text-gray-500 mt-1">{s.desc}</p>
+            </Link>
+          )
         ))}
       </div>
       <div className="p-5 rounded-xl border border-gray-200 bg-white">

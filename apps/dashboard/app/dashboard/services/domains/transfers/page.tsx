@@ -16,7 +16,7 @@ export default function DomainTransfersPage() {
 
   const fetchTransfers = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/transfers`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/transfers`, { headers });
       const data = await res.json();
       setTransfers(data.transfers || []);
     } catch (e) {
@@ -35,7 +35,7 @@ export default function DomainTransfersPage() {
       cycles++;
       if (cycles > 3) { clearInterval(interval); return; }
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/transfers`, { headers });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/transfers`, { headers });
         const data = await res.json();
         setTransfers(data.transfers || []);
       } catch (e) {}
@@ -45,7 +45,7 @@ export default function DomainTransfersPage() {
 
   const initiateTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/transfers`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/transfers`, {
       method: "POST", headers,
       body: JSON.stringify({ domain, authCode, years, price: 9.99 }),
     });
@@ -57,7 +57,7 @@ export default function DomainTransfersPage() {
   };
 
   const cancelTransfer = async (id: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/transfers/${id}/cancel`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/transfers/${id}/cancel`, {
       method: "POST", headers,
     });
     if (res.ok) {

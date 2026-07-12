@@ -31,7 +31,7 @@ export default function ProjectsPage() {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/projects`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ name, description, organizationId: "00000000-0000-0000-0000-000000000000" }),
@@ -48,7 +48,7 @@ export default function ProjectsPage() {
   const deleteProject = async (id: string) => {
     if (!confirm("Delete this project?")) return;
     const token = localStorage.getItem("token");
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/projects/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

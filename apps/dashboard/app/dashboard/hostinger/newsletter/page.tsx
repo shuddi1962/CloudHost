@@ -30,7 +30,7 @@ export default function NewsletterPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/newsletter`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/newsletter`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -41,7 +41,7 @@ export default function NewsletterPage() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/newsletter`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/newsletter`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),
@@ -57,7 +57,7 @@ export default function NewsletterPage() {
   const generateContent = async (id: string) => {
     setGenerating(id);
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/newsletter/${id}/generate`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/newsletter/${id}/generate`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -71,7 +71,7 @@ export default function NewsletterPage() {
   const sendCampaign = async (id: string) => {
     setSending(id);
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/newsletter/${id}/send`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/newsletter/${id}/send`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

@@ -44,7 +44,7 @@ export default function MinecraftPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/minecraft`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/minecraft`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -55,7 +55,7 @@ export default function MinecraftPage() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/minecraft`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/minecraft`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
@@ -77,7 +77,7 @@ export default function MinecraftPage() {
 
   const action = async (id: string, action: string) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/minecraft/${id}/${action}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/hostinger-services/minecraft/${id}/${action}`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

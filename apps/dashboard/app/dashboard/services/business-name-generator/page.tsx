@@ -25,7 +25,7 @@ export default function BusinessNameGeneratorPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/business-name-generator`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/business-name-generator`, {
         method: "POST", headers,
         body: JSON.stringify({ industry: industry.trim(), keywords: keywords.trim().split(",").map(k => k.trim()).filter(Boolean) }),
       });

@@ -14,7 +14,7 @@ export default function DomainPrivacyPage() {
 
   const fetchPrivacy = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/privacy`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/privacy`, { headers });
       const data = await res.json();
       setPrivacyList(data.privacy || []);
     } catch (e) {
@@ -28,7 +28,7 @@ export default function DomainPrivacyPage() {
 
   const enablePrivacy = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/privacy`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/privacy`, {
       method: "POST", headers,
       body: JSON.stringify({ domain, price: 2.88 }),
     });
@@ -40,7 +40,7 @@ export default function DomainPrivacyPage() {
   };
 
   const disablePrivacy = async (id: string) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/privacy/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/domain-services/privacy/${id}`, {
       method: "DELETE", headers,
     });
     if (res.ok) {

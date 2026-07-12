@@ -26,14 +26,14 @@ const demoServices = [
 ];
 
 const demoUsers = [
-  { id: "1", name: "Admin User", email: "admin@cloudhost.com", isAdmin: true, isSuperAdmin: true, createdAt: "2026-01-15T08:00:00Z" },
-  { id: "2", name: "John Customer", email: "user@cloudhost.com", isAdmin: false, isSuperAdmin: false, createdAt: "2026-02-20T10:30:00Z" },
-  { id: "3", name: "Sarah Johnson", email: "sarah@acmecorp.com", isAdmin: true, isSuperAdmin: false, createdAt: "2026-03-05T14:15:00Z" },
-  { id: "4", name: "Mike Chen", email: "mike@startup.co", isAdmin: false, isSuperAdmin: false, createdAt: "2026-03-18T09:45:00Z" },
-  { id: "5", name: "Emily Davis", email: "emily@webagency.com", isAdmin: false, isSuperAdmin: false, createdAt: "2026-04-01T11:00:00Z" },
-  { id: "6", name: "Alex Rodriguez", email: "alex@techlabs.io", isAdmin: false, isSuperAdmin: false, createdAt: "2026-04-12T16:20:00Z" },
-  { id: "7", name: "Lisa Wang", email: "lisa@ecomstore.com", isAdmin: true, isSuperAdmin: false, createdAt: "2026-05-02T08:30:00Z" },
-  { id: "8", name: "Tom Baker", email: "tom@devshop.net", isAdmin: false, isSuperAdmin: false, createdAt: "2026-05-19T13:10:00Z" },
+  { id: "1", name: "Admin User", email: "admin@cloudhost.com", isAdmin: true, createdAt: "2026-01-15T08:00:00Z" },
+  { id: "2", name: "John Customer", email: "user@cloudhost.com", isAdmin: false, createdAt: "2026-02-20T10:30:00Z" },
+  { id: "3", name: "Sarah Johnson", email: "sarah@acmecorp.com", isAdmin: true, createdAt: "2026-03-05T14:15:00Z" },
+  { id: "4", name: "Mike Chen", email: "mike@startup.co", isAdmin: false, createdAt: "2026-03-18T09:45:00Z" },
+  { id: "5", name: "Emily Davis", email: "emily@webagency.com", isAdmin: false, createdAt: "2026-04-01T11:00:00Z" },
+  { id: "6", name: "Alex Rodriguez", email: "alex@techlabs.io", isAdmin: false, createdAt: "2026-04-12T16:20:00Z" },
+  { id: "7", name: "Lisa Wang", email: "lisa@ecomstore.com", isAdmin: true, createdAt: "2026-05-02T08:30:00Z" },
+  { id: "8", name: "Tom Baker", email: "tom@devshop.net", isAdmin: false, createdAt: "2026-05-19T13:10:00Z" },
 ];
 
 export default function AdminPage() {
@@ -43,8 +43,6 @@ export default function AdminPage() {
     const u = localStorage.getItem("user");
     if (u) setUser(JSON.parse(u));
   }, []);
-
-  const isSuperAdmin = user?.isSuperAdmin;
 
   return (
     <div className="space-y-6">
@@ -56,7 +54,6 @@ export default function AdminPage() {
         <div className="flex items-center gap-2">
           <span className="badge badge-info">CloudHost v2.0</span>
           <span className="badge badge-success">Node v24.14</span>
-          {isSuperAdmin && <span className="badge bg-red-100 text-red-700">Super Admin</span>}
         </div>
       </div>
 
@@ -138,11 +135,9 @@ export default function AdminPage() {
                 { label: "Manage Users", href: "/admin/users", icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197" },
                 { label: "Server Nodes", href: "/admin/servers", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
                 { label: "Billing Plans", href: "/admin/billing", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
-                ...(isSuperAdmin ? [
-                  { label: "Feature Flags", href: "/admin", icon: "M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" },
-                  { label: "Audit Logs", href: "/admin", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
-                  { label: "System Config", href: "/admin", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" },
-                ] : []),
+                { label: "Feature Flags", href: "/admin/features", icon: "M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" },
+                { label: "Audit Logs", href: "/admin", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
+                { label: "Platform Settings", href: "/admin/features", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" },
               ].map((a) => (
                 <Link key={a.label} href={a.href}
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
@@ -207,8 +202,8 @@ export default function AdminPage() {
                     </td>
                     <td className="py-3 text-gray-600">{u.email}</td>
                     <td className="py-3">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${u.isSuperAdmin ? "bg-red-100 text-red-700" : u.isAdmin ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
-                        {u.isSuperAdmin ? "Super Admin" : u.isAdmin ? "Admin" : "User"}
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${u.isAdmin ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
+                        {u.isAdmin ? "Admin" : "User"}
                       </span>
                     </td>
                     <td className="py-3 text-gray-500">{new Date(u.createdAt).toLocaleDateString()}</td>

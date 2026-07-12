@@ -28,7 +28,7 @@ export default function FontMakerPage() {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/font-maker`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/font-maker`, { headers });
       const data = await res.json();
       setProjects(data.projects || data.fonts || []);
     } catch {} finally { setLoading(false); }
@@ -41,7 +41,7 @@ export default function FontMakerPage() {
     if (!name.trim()) return;
     setGenerating(true);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/font-maker`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/font-maker`, {
         method: "POST", headers,
         body: JSON.stringify({ name: name.trim(), style }),
       });

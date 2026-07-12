@@ -157,7 +157,7 @@ export default function CreateContainerServicePage() {
               Your container service will cost <strong className="text-lg text-indigo-700">${totalCost} USD</strong> per month.
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Outbound data transfer is billed at $0.01 per GB beyond plan allowance. See our <Link href="#" className="text-indigo-600 hover:underline">pricing page</Link> for details.
+              Outbound data transfer is billed at $0.01 per GB beyond plan allowance. See our <Link href="/dashboard/billing" className="text-indigo-600 hover:underline">pricing page</Link> for details.
             </p>
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function CreateContainerServicePage() {
               Your container service will cost <strong className="text-lg text-indigo-700">${totalCost} USD</strong> per month.
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Outbound data transfer is billed at $0.01 per GB beyond plan allowance. See our <Link href="#" className="text-indigo-600 hover:underline">pricing page</Link> for details.
+              Outbound data transfer is billed at $0.01 per GB beyond plan allowance. See our <Link href="/dashboard/billing" className="text-indigo-600 hover:underline">pricing page</Link> for details.
             </p>
           </div>
           <div className="flex items-center gap-3 text-sm">

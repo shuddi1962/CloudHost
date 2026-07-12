@@ -22,7 +22,7 @@ export default function AbuseReportPage() {
     if (!name.trim() || !email.trim() || !description.trim()) return;
     setSending(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/abuse`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketing-suite/abuse`, {
         method: "POST", headers,
         body: JSON.stringify({ name: name.trim(), email: email.trim(), reportType, domain: domain.trim(), description: description.trim() }),
       });

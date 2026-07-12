@@ -43,8 +43,8 @@ export default function MarketplacePage() {
     const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/apps`, { headers }).then(r => r.json()),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/installations`, { headers }).then(r => r.json()),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketplace/apps`, { headers }).then(r => r.json()),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketplace/installations`, { headers }).then(r => r.json()),
     ]).then(([appsData, instData]) => {
       setData(appsData);
       setInstallations(instData.installations || []);
@@ -54,7 +54,7 @@ export default function MarketplacePage() {
   const install = async (app: any) => {
     setInstalling(true);
     const token = localStorage.getItem("token");
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/install`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketplace/install`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ appId: app.id, appName: app.name }),
@@ -62,7 +62,7 @@ export default function MarketplacePage() {
     setShowInstallModal(null);
     setInstalling(false);
     const headers = { Authorization: `Bearer ${token}` };
-    const instData = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/installations`, { headers }).then(r => r.json());
+    const instData = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marketplace/installations`, { headers }).then(r => r.json());
     setInstallations(instData.installations || []);
   };
 
