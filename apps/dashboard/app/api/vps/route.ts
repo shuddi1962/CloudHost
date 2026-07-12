@@ -24,12 +24,12 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await requireAuth();
     const body = await request.json();
-    const { name, plan, region, blueprint, platform, tags } = body;
+    const { name, plan, region, blueprint, platform, image, tags } = body;
     if (!name || !plan || !region || !blueprint || !platform) {
       throw new ApiError(400, "Missing required fields: name, plan, region, blueprint, platform");
     }
     const instance = await ProvisioningEngine.provisionInstance(
-      userId, name, plan, region, blueprint, platform, tags || []
+      userId, name, plan, region, blueprint, platform, image || "ubuntu-24-04-x64", tags || []
     );
     return NextResponse.json(instance, { status: 201 });
   } catch (error) {

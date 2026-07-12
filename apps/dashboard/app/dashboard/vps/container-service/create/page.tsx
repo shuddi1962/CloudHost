@@ -2,40 +2,72 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const regions = [
-  { code: "eu-west-3", label: "Paris, all zones (eu-west-3)" },
-  { code: "us-east-1", label: "N. Virginia, all zones (us-east-1)" },
-  { code: "us-west-2", label: "Oregon, all zones (us-west-2)" },
-  { code: "ap-southeast-1", label: "Singapore, all zones (ap-southeast-1)" },
-  { code: "ap-northeast-1", label: "Tokyo, all zones (ap-northeast-1)" },
-  { code: "eu-central-1", label: "Frankfurt, all zones (eu-central-1)" },
-  { code: "eu-west-2", label: "London, all zones (eu-west-2)" },
+  { code: "nyc3", label: "New York (NYC)" },
+  { code: "sfo3", label: "San Francisco (SFO)" },
+  { code: "ams3", label: "Amsterdam (AMS)" },
+  { code: "sgp1", label: "Singapore (SGP)" },
+  { code: "lon1", label: "London (LON)" },
+  { code: "fra1", label: "Frankfurt (FRA)" },
+  { code: "tor1", label: "Toronto (TOR)" },
+  { code: "blr1", label: "Bangalore (BLR)" },
+  { code: "syd1", label: "Sydney (SYD)" },
 ];
 
 const powers = [
-  { id: "nano", label: "Na", name: "Nano", price: 7, ram: "512 MB", cpu: "0.25 vCPUs" },
-  { id: "micro", label: "Mi", name: "Micro", price: 10, ram: "1 GB", cpu: "0.25 vCPUs" },
-  { id: "small", label: "Sm", name: "Small", price: 15, ram: "1 GB", cpu: "0.5 vCPUs" },
-  { id: "medium", label: "Md", name: "Medium", price: 40, ram: "2 GB", cpu: "1 vCPU" },
-  { id: "large", label: "Lg", name: "Large", price: 80, ram: "4 GB", cpu: "2 vCPUs" },
-  { id: "xlarge", label: "Xl", name: "Xlarge", price: 160, ram: "8 GB", cpu: "4 vCPUs" },
+  { id: "light", label: "Li", name: "Light", price: 5, ram: "512 MB", cpu: "shared vCPU" },
+  { id: "standard", label: "St", name: "Standard", price: 10, ram: "1 GB", cpu: "shared vCPU" },
+  { id: "plus", label: "Pl", name: "Plus", price: 20, ram: "2 GB", cpu: "1 vCPU" },
+  { id: "pro", label: "Pr", name: "Pro", price: 40, ram: "4 GB", cpu: "2 vCPUs" },
+  { id: "max", label: "Mx", name: "Max", price: 80, ram: "8 GB", cpu: "4 vCPUs" },
 ];
 
 const scaleOptions = [1, 5, 10, 15, 20];
 
 export default function CreateContainerServicePage() {
-  const [selectedRegion, setSelectedRegion] = useState("eu-west-3");
+  const router = useRouter();
+  const [selectedRegion, setSelectedRegion] = useState("nyc3");
   const [showRegionPicker, setShowRegionPicker] = useState(false);
-  const [selectedPower, setSelectedPower] = useState("micro");
+  const [selectedPower, setSelectedPower] = useState("standard");
   const [scale, setScale] = useState(1);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [serviceName, setServiceName] = useState("my-service-1");
 
   const power = powers.find((p) => p.id === selectedPower) || powers[0];
   const totalCost = power.price * scale;
   const region = regions.find((r) => r.code === selectedRegion) || regions[0];
 
-  const serviceName = "container-service-1";
-  const defaultDomain = `${serviceName}.a1b2c3d4-e5f6-7890-abcd-ef1234567890.eu-west-3.cs.amazonlightsail.com`;
+  const randomId = Math.random().toString(36).substring(2, 10);
+  const defaultDomain = `${serviceName}.${randomId}.${selectedRegion}.containers.cloudhost.app`;
+
+  async function handleCreate() {
+    setCreating(true);
+    setCreateError("");
+    try {
+      const res = await fetch("/api/container-services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: serviceName,
+          region: selectedRegion,
+          nodeSize: selectedPower,
+          nodeCount: scale,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to create container service");
+      }
+      router.push("/dashboard/vps");
+    } catch (e: any) {
+      setCreateError(e.message);
+    } finally {
+      setCreating(false);
+    }
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -46,21 +78,21 @@ export default function CreateContainerServicePage() {
           </svg>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Create a container service</h1>
-          <p className="text-sm text-gray-500">A container service is a compute resource to which you can deploy containers.</p>
+          <h1 className="text-2xl font-bold">Create Container Service</h1>
+          <p className="text-sm text-gray-500">A container service runs your Docker containers on managed compute nodes.</p>
         </div>
       </div>
 
       {/* Location */}
       <div className="card">
         <div className="card-body">
-          <h2 className="text-lg font-semibold mb-1">Container service location</h2>
+          <h2 className="text-lg font-semibold mb-1">Service Location</h2>
           <p className="text-sm text-gray-600 mb-3">
-            You are creating this container service in <strong>{region.label}</strong>
+            Your container service will run in <strong>{region.label}</strong>.
           </p>
           <button onClick={() => setShowRegionPicker(!showRegionPicker)}
             className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-            Change AWS Region
+            Change region
           </button>
           {showRegionPicker && (
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -80,11 +112,10 @@ export default function CreateContainerServicePage() {
       {/* Capacity */}
       <div className="card">
         <div className="card-body">
-          <h2 className="text-lg font-semibold mb-1">Choose your container service capacity</h2>
-          <p className="text-sm text-gray-500 mb-5">The power specifies the memory, vCPUs, and base cost of each node in your container service. The scale specifies the number of compute nodes in your container service.</p>
+          <h2 className="text-lg font-semibold mb-1">Choose Your Node Size</h2>
+          <p className="text-sm text-gray-500 mb-5">The node size determines the memory, vCPUs, and monthly cost per node.</p>
 
-          {/* Power */}
-          <p className="text-sm font-medium text-gray-700 mb-3">Choose the power</p>
+          <p className="text-sm font-medium text-gray-700 mb-3">Choose a node size</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
             {powers.map((p) => (
               <button key={p.id} onClick={() => setSelectedPower(p.id)}
@@ -104,17 +135,9 @@ export default function CreateContainerServicePage() {
             ))}
           </div>
 
-          <div className="flex items-center gap-4 mb-2 text-sm">
-            <span className="font-medium text-gray-700">Memory</span>
-            <span className="text-gray-500">{power.ram} RAM</span>
-          </div>
-          <div className="flex items-center gap-4 mb-6 text-sm">
-            <span className="font-medium text-gray-700">Processing</span>
-            <span className="text-gray-500">{power.cpu}</span>
-          </div>
-
           {/* Scale */}
-          <p className="text-sm font-medium text-gray-700 mb-3">Choose the scale</p>
+          <p className="text-sm font-medium text-gray-700 mb-3">Choose Node Count</p>
+          <p className="text-xs text-gray-500 mb-3">Increase node count to scale your service across multiple compute nodes.</p>
           <div className="flex items-center gap-2 mb-6">
             {scaleOptions.map((n) => (
               <button key={n} onClick={() => setScale(n)}
@@ -133,9 +156,8 @@ export default function CreateContainerServicePage() {
               Your container service will cost <strong className="text-lg text-indigo-700">${totalCost} USD</strong> per month.
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Your container service includes a data transfer quota of 500 GB per month. Data transfer in excess of the quota will result in an overage charge that varies by AWS Region and starts at $0.09 USD per GB.
+              Outbound data transfer beyond your plan's allowance is billed at $0.01 per GB. See our <Link href="#" className="text-indigo-600 hover:underline">pricing page</Link> for details.
             </p>
-            <Link href="#" className="text-xs text-indigo-600 hover:underline mt-1 inline-block">Learn more about Lightsail pricing</Link>
           </div>
         </div>
       </div>
@@ -143,8 +165,8 @@ export default function CreateContainerServicePage() {
       {/* Deployment */}
       <div className="card">
         <div className="card-body">
-          <h2 className="text-lg font-semibold mb-1">Set up your first deployment</h2>
-          <p className="text-sm text-gray-500 mb-4">A deployment specifies the containers you want to launch on your container service, and their configuration. <Link href="#" className="text-indigo-600 hover:underline">Learn more about container service deployments</Link></p>
+          <h2 className="text-lg font-semibold mb-1">Set Up Your Deployment</h2>
+          <p className="text-sm text-gray-500 mb-4">Configure the container image, ports, environment variables, and whether new pushes auto-deploy.</p>
           <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
             <svg className="w-10 h-10 mx-auto text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
@@ -158,11 +180,11 @@ export default function CreateContainerServicePage() {
       {/* Service name */}
       <div className="card">
         <div className="card-body">
-          <h2 className="text-lg font-semibold mb-1">Identify your service</h2>
-          <p className="text-sm text-gray-500 mb-4">The name of your container service must be unique within each AWS Region in your Lightsail account. It must also be lower-case, and DNS-compliant. <Link href="#" className="text-indigo-600 hover:underline">Learn more about container service names</Link></p>
+          <h2 className="text-lg font-semibold mb-1">Name Your Service</h2>
+          <p className="text-sm text-gray-500 mb-4">Your container service name must be unique, lowercase, and DNS-compliant.</p>
           <div className="max-w-sm">
-            <input type="text" value={serviceName} readOnly
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed" />
+            <input type="text" value={serviceName} onChange={(e) => setServiceName(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
           </div>
           <p className="text-xs text-gray-400 mt-3">
             The default domain of your container service will be:
@@ -180,9 +202,8 @@ export default function CreateContainerServicePage() {
               Your container service will cost <strong className="text-lg text-indigo-700">${totalCost} USD</strong> per month.
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Your container service includes a data transfer quota of 500 GB per month. Data transfer in excess of the quota will result in an overage charge that varies by AWS Region and starts at $0.09 USD per GB.
+              Outbound data transfer beyond your plan's allowance is billed at $0.01 per GB. See our <Link href="#" className="text-indigo-600 hover:underline">pricing page</Link> for details.
             </p>
-            <Link href="#" className="text-xs text-indigo-600 hover:underline mt-1 inline-block">Learn more about Lightsail pricing</Link>
           </div>
           <div className="flex items-center gap-3 text-sm">
             <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -196,8 +217,10 @@ export default function CreateContainerServicePage() {
 
       {/* Create button */}
       <div className="flex justify-end">
-        <button className="px-8 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
-          Create container service
+        {createError && <p className="text-sm text-red-600 mr-4">{createError}</p>}
+        <button onClick={handleCreate} disabled={creating}
+          className="px-8 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50">
+          {creating ? "Creating..." : "Create Container Service"}
         </button>
       </div>
     </div>

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { requireAuth } from "@/lib/api-middleware";
-import { handleApiError } from "@/lib/api-error";
+import { handleApiError, ApiError } from "@/lib/api-error";
+import { ProvisioningEngine } from "@/lib/provisioning-engine";
 
 export async function GET() {
   try {
@@ -12,34 +13,20 @@ export async function GET() {
   } catch (e) { return handleApiError(e); }
 }
 
+const NODE_PRICES: Record<string, number> = { light: 5, standard: 10, plus: 20, pro: 40, max: 80 };
+
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await requireAuth();
     const body = await request.json();
-    const supabase = createClient();
-
-    const powerPrices: Record<string, number> = { nano: 7, micro: 15, small: 30, medium: 55, large: 100, xlarge: 160 };
-    const price = powerPrices[body.power] || 7;
-
-    const { data, error } = await supabase.from("container_services").insert({
-      user_id: userId,
-      name: body.name,
-      region: body.region || "eu-west-3",
-      power: body.power || "nano",
-      scale: body.scale || 1,
-      status: "provisioning",
-      price_monthly: price * (body.scale || 1),
-    }).select().single();
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-
-    setTimeout(async () => {
-      await supabase.from("container_services").update({
-        status: "running",
-        default_domain: `${body.name}.containers.cloudhost.app`,
-      }).eq("id", data.id);
-    }, 5000);
-
-    return NextResponse.json(data, { status: 201 });
+    const { name, region, nodeSize, nodeCount } = body;
+    if (!name || !region || !nodeSize || !nodeCount) {
+      throw new ApiError(400, "Missing required fields: name, region, nodeSize, nodeCount");
+    }
+    const pricePerNode = NODE_PRICES[nodeSize] || 10;
+    const service = await ProvisioningEngine.provisionContainerService(
+      userId, name, region, nodeSize, nodeCount, "", [], {}, true
+    );
+    return NextResponse.json(service, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

@@ -4,6 +4,7 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://api.cloudhost.app"
+    "NEXT_PUBLIC_API_URL": "https://api.cloudhost.app",
+    "CLOUDHOST_INSTANCE_DOMAIN": "cloudhost.app"
   }
 }
