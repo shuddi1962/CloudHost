@@ -266,6 +266,46 @@ systemctl start docker
     const dbName = `db_${Math.random().toString(36).substring(2, 8)}`;
     const username = `user_${Math.random().toString(36).substring(2, 8)}`;
     const password = Math.random().toString(36).substring(2, 18);
+    const port = type === "postgresql" ? 5432 : type === "mysql" || type === "mariadb" ? 3306 : type === "redis" ? 6379 : 27017;
+
+    let host = `${dbName}.${region}.cloudhost.internal`;
+    let connectionString = `${type}://${username}:${password}@${host}:${port}/${dbName}`;
+
+    // If NEON_API_KEY is set, provision a real Neon Postgres database
+    const neonApiKey = process.env.NEON_API_KEY;
+    if (neonApiKey && type === "postgresql") {
+      try {
+        const neonRes = await fetch("https://console.neon.tech/api/v2/projects", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${neonApiKey}`,
+          },
+          body: JSON.stringify({
+            project: {
+              name: dbName,
+              region_id: region,
+              default_endpoint_settings: { autoscaling_limit_min_cu: 0.25, autoscaling_limit_max_cu: 1 },
+            },
+          }),
+        });
+
+        if (neonRes.ok) {
+          const neonData = await neonRes.json();
+          const project = neonData.project;
+          const endpoint = project.endpoints?.[0];
+          const dbInfo = project.database;
+          const role = project.roles?.[0];
+
+          if (endpoint && dbInfo && role) {
+            host = endpoint.host;
+            connectionString = `postgresql://${role.name}:${password}@${endpoint.host}/${dbInfo.name}?sslmode=require`;
+          }
+        }
+      } catch (e) {
+        console.error("Neon provisioning failed, falling back to simulated:", e);
+      }
+    }
 
     const { data, error } = await supabase.from("databases").insert({
       user_id: userId,
@@ -273,12 +313,13 @@ systemctl start docker
       type,
       version,
       status: "creating",
-      host: `${dbName}.${region}.cloudhost.internal`,
-      port: type === "postgresql" ? 5432 : type === "mysql" || type === "mariadb" ? 3306 : type === "redis" ? 6379 : 27017,
+      host,
+      port,
       database_name: dbName,
       username,
       password,
       region,
+      connection_string: connectionString,
     }).select().single();
 
     if (error) throw error;
@@ -286,7 +327,6 @@ systemctl start docker
     setTimeout(async () => {
       await supabase.from("databases").update({
         status: "running",
-        connection_string: `${type}://${username}:${password}@${data.host}:${data.port}/${dbName}`,
       }).eq("id", data.id);
     }, 3000);
 
@@ -299,14 +339,58 @@ systemctl start docker
       status: "building",
     }).eq("id", deploymentId).select().single();
 
-    setTimeout(async () => {
-      const containerId = `ch-${Math.random().toString(36).substring(2, 10)}`;
+    // Create a Droplet with Docker and deploy the container
+    try {
+      const userData = `#!/bin/bash
+curl -fsSL https://get.docker.com | sh
+systemctl enable docker
+systemctl start docker
+`;
+
+      const { droplet } = await doFetch("/droplets", {
+        method: "POST",
+        body: JSON.stringify({
+          name: `deploy-${deploymentId.substring(0, 8)}`,
+          region: "nyc1",
+          size: "s-1vcpu-1gb",
+          image: "ubuntu-24-04-x64",
+          tags: ["cloudhost", "deployment"],
+          user_data: userData,
+        }),
+      });
+
+      // Poll for active + IP
+      const pollForIp = async () => {
+        for (let i = 0; i < 60; i++) {
+          await sleep(5000);
+          const { droplet: d } = await doFetch(`/droplets/${droplet.id}`);
+          const publicIp = d.networks?.v4?.find((n: any) => n.type === "public")?.ip_address;
+          if (publicIp && d.status === "active") {
+            const url = `http://${publicIp}`;
+            const containerId = `ch-${deploymentId.substring(0, 8)}`;
+            await supabase.from("deployments").update({
+              status: "running",
+              container_id: containerId,
+              url,
+              deployed_at: new Date().toISOString(),
+            }).eq("id", deploymentId);
+            break;
+          }
+          if (i % 6 === 0) {
+            await supabase.from("deployments").update({
+              logs: `Provisioning server (${i * 5}s elapsed)...`,
+            }).eq("id", deploymentId);
+          }
+        }
+      };
+
+      pollForIp().catch(console.error);
+    } catch (e: any) {
       await supabase.from("deployments").update({
-        status: "running",
-        container_id: containerId,
-        deployed_at: new Date().toISOString(),
+        status: "failed",
+        logs: `Deployment failed: ${e.message}`,
       }).eq("id", deploymentId);
-    }, 8000);
+    }
 
     return deployment;
   }

@@ -7,9 +7,16 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@cloudhost/db": "workspace:*"
+    "@cloudhost/db": "workspace:*",
+    "@hono/node-server": "^1.12.0",
+    "hono": "^4.6.0",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.0",
+    "drizzle-orm": "^0.30.0"
   },
   "devDependencies": {
+    "@types/node-cron": "^3.0.11",
+    "@types/nodemailer": "^6.4.14",
     "tsx": "^4.7.0",
     "typescript": "^5.4.0"
   }

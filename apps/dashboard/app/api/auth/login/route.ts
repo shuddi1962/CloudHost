@@ -1,28 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase-server";
-import { ApiError, handleApiError } from "@/lib/api-error";
+import { handleApiError } from "@/lib/api-error";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 
-    if (!email || !password) {
-      throw new ApiError(400, "Email and password are required");
+    const response = await fetch(`${API_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json({ error: data.error || "Login failed" }, { status: response.status });
     }
 
-    const supabase = createClient();
+    const nextRes = NextResponse.json(data);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const setCookieHeader = response.headers.get("set-cookie");
+    if (setCookieHeader) {
+      nextRes.headers.set("Set-Cookie", setCookieHeader);
+    }
 
-    if (error) throw new ApiError(401, error.message);
-
-    return NextResponse.json({
-      user: data.user,
-      session: data.session,
-    });
+    return nextRes;
   } catch (error) {
     return handleApiError(error);
   }

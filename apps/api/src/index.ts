@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { jwt } from "hono/jwt";
 import { serve } from "@hono/node-server";
 
+import { jwtAuth } from "./middleware/auth";
 import { authRouter } from "./routes/auth";
 import { projectsRouter } from "./routes/projects";
 import { deploymentsRouter } from "./routes/deployments";
@@ -44,6 +44,12 @@ import { businessToolsRouter } from "./routes/business-tools";
 import { marketingSuiteRouter } from "./routes/marketing-suite";
 import { hostingerServicesRouter } from "./routes/hostinger-services";
 
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  console.error("FATAL: JWT_SECRET environment variable is required");
+  process.exit(1);
+}
+
 const app = new Hono();
 
 app.use("*", cors({
@@ -55,7 +61,7 @@ app.get("/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOStri
 
 app.route("/api/auth", authRouter);
 
-app.use("/api/*", jwt({ secret: process.env.JWT_SECRET || "dev-secret", alg: "HS256" }));
+app.use("/api/*", jwtAuth);
 
 app.route("/api/projects", projectsRouter);
 app.route("/api/deployments", deploymentsRouter);

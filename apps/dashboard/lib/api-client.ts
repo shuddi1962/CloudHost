@@ -29,6 +29,7 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const response = await fetch(path, {
+    credentials: "include",
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -65,6 +66,7 @@ export const apiClient = {
 
   async upload<T>(path: string, formData: FormData, init?: RequestInit): Promise<T> {
     const response = await fetch(path, {
+      credentials: "include",
       ...init,
       method: "POST",
       body: formData,
