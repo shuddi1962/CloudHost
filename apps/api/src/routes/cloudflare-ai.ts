@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { db, workersAi, aiModels, vectorizeIndexes, aiGateway, aiSearch, aiAgents } from "@cloudhost/db";
+import { cfFetch, cfFetchOrNull } from "../lib/cloudflare";
 
 export const cloudflareAiRouter = new Hono();
 
@@ -38,7 +39,24 @@ cloudflareAiRouter.post("/inference", async (c) => {
   const body = await c.req.json();
   const prompt = body.prompt || "Hello!";
   const modelName = body.model || "@cf/meta/llama-3.1-8b-instruct";
-  const inferenceResult = { model: modelName, response: `Echo: ${prompt}. This is a simulated AI inference response.`, tokensUsed: prompt.length, latency: Math.floor(Math.random() * 500 + 100) };
+
+  const realResult = await cfFetchOrNull(`/ai/run/${modelName}`, {
+    method: "POST",
+    body: JSON.stringify({ prompt, stream: false }),
+  });
+
+  let inferenceResult;
+  if (realResult?.success) {
+    const result = realResult.result;
+    inferenceResult = {
+      model: modelName,
+      response: result.response || result.text || JSON.stringify(result),
+      tokensUsed: result.usage?.total_tokens ?? result.usage?.completion_tokens ?? prompt.length,
+      latency: result.usage?.wall_time_ms ?? Math.floor(Math.random() * 500 + 100),
+    };
+  } else {
+    inferenceResult = { model: modelName, response: `Echo: ${prompt}. This is a simulated AI inference response.`, tokensUsed: prompt.length, latency: Math.floor(Math.random() * 500 + 100) };
+  }
 
   const existing = await db.select().from(workersAi).where(eq(workersAi.userId, jwtPayload(c).sub)).limit(1);
   if (existing.length > 0) {
@@ -64,9 +82,15 @@ cloudflareAiRouter.get("/vectorize", async (c) => {
 
 cloudflareAiRouter.post("/vectorize", async (c) => {
   const body = await c.req.json();
+  const realResult = await cfFetchOrNull("/vectorize/indexes", {
+    method: "POST",
+    body: JSON.stringify({ name: body.name, dimensions: body.dimensions, metric: body.metric }),
+  });
+  const providerId = realResult?.success ? realResult.result.id : null;
   const [created] = await db.insert(vectorizeIndexes).values({
     userId: jwtPayload(c).sub, name: body.name, description: body.description,
     dimensions: body.dimensions, metric: body.metric, config: body.config,
+    providerId,
   }).returning();
   return c.json({ index: created }, 201);
 });
@@ -75,7 +99,22 @@ cloudflareAiRouter.post("/vectorize/:id/query", async (c) => {
   const body = await c.req.json();
   const [idx] = await db.select().from(vectorizeIndexes).where(eq(vectorizeIndexes.id, c.req.param("id"))).limit(1);
   if (!idx) return c.json({ error: "Not found" }, 404);
-  const matches = (idx.vectors as any[] || []).slice(0, body.topK || 10).map((v: any) => ({ ...v, score: Math.random() }));
+
+  let matches;
+  if (idx.providerId) {
+    const realResult = await cfFetchOrNull(`/vectorize/indexes/${idx.providerId}/query`, {
+      method: "POST",
+      body: JSON.stringify({ vector: body.vector, topK: body.topK }),
+    });
+    if (realResult?.success) {
+      matches = realResult.result.matches || [];
+    }
+  }
+
+  if (!matches) {
+    matches = (idx.vectors as any[] || []).slice(0, body.topK || 10).map((v: any) => ({ ...v, score: Math.random() }));
+  }
+
   await db.update(vectorizeIndexes).set({ usage: { queries: ((idx.usage as any)?.queries || 0) + 1, vectorsInserted: (idx.usage as any)?.vectorsInserted || 0, storage: (idx.usage as any)?.storage || 0 }, updatedAt: new Date() }).where(eq(vectorizeIndexes.id, c.req.param("id")));
   return c.json({ matches, count: matches.length });
 });
@@ -84,6 +123,14 @@ cloudflareAiRouter.post("/vectorize/:id/vectors", async (c) => {
   const body = await c.req.json();
   const [idx] = await db.select().from(vectorizeIndexes).where(eq(vectorizeIndexes.id, c.req.param("id"))).limit(1);
   if (!idx) return c.json({ error: "Not found" }, 404);
+
+  if (idx.providerId) {
+    await cfFetchOrNull(`/vectorize/indexes/${idx.providerId}/upsert`, {
+      method: "POST",
+      body: JSON.stringify({ vectors: body.vectors }),
+    });
+  }
+
   const newVectors = (body.vectors || []).map((v: any, i: number) => ({ id: `vec-${Date.now()}-${i}`, values: v.values, metadata: v.metadata }));
   const vectors = [...(idx.vectors as any[] || []), ...newVectors];
   const [updated] = await db.update(vectorizeIndexes).set({ vectors, vectorCount: vectors.length, updatedAt: new Date() }).where(eq(vectorizeIndexes.id, c.req.param("id"))).returning();
@@ -103,10 +150,22 @@ cloudflareAiRouter.get("/gateway", async (c) => {
 
 cloudflareAiRouter.post("/gateway", async (c) => {
   const body = await c.req.json();
+  const realResult = await cfFetchOrNull("/ai-gateway/gateways", {
+    method: "POST",
+    body: JSON.stringify({
+      name: body.name,
+      provider: body.provider,
+      endpoint: body.endpoint,
+      cacheConfig: body.cacheConfig,
+      rateLimits: body.rateLimits,
+      fallbackProviders: body.fallbackProviders,
+    }),
+  });
+  const providerId = realResult?.success ? realResult.result.id : null;
   const [created] = await db.insert(aiGateway).values({
     userId: jwtPayload(c).sub, name: body.name, provider: body.provider,
     endpoint: body.endpoint, cacheConfig: body.cacheConfig, rateLimits: body.rateLimits,
-    fallbackProviders: body.fallbackProviders,
+    fallbackProviders: body.fallbackProviders, providerId,
   }).returning();
   return c.json({ gateway: created }, 201);
 });
@@ -119,13 +178,28 @@ cloudflareAiRouter.put("/gateway/:id", async (c) => {
 
 cloudflareAiRouter.post("/gateway/:id/proxy", async (c) => {
   const body = await c.req.json();
-  const simulatedResponse = { id: "chatcmpl-" + Date.now(), object: "chat.completion", choices: [{ message: { role: "assistant", content: `Simulated AI response via gateway to: ${body.model || "gpt-4"}` } }], usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 } };
   const [gw] = await db.select().from(aiGateway).where(eq(aiGateway.id, c.req.param("id"))).limit(1);
   if (!gw) return c.json({ error: "Gateway not found" }, 404);
+
+  let response;
+  if (gw.providerId) {
+    const realResult = await cfFetchOrNull(`/ai-gateway/gateways/${gw.providerId}/proxy`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (realResult?.success) {
+      response = realResult.result;
+    }
+  }
+
+  if (!response) {
+    response = { id: "chatcmpl-" + Date.now(), object: "chat.completion", choices: [{ message: { role: "assistant", content: `Simulated AI response via gateway to: ${body.model || "gpt-4"}` } }], usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 } };
+  }
+
   const logs = [...(gw.logs as any[] || []), { model: body.model, timestamp: new Date().toISOString(), tokens: 30, cached: false }];
   const analytics = { totalRequests: ((gw.analytics as any)?.totalRequests || 0) + 1, cachedResponses: (gw.analytics as any)?.cachedResponses || 0, tokensSaved: (gw.analytics as any)?.tokensSaved || 0, costSaved: (gw.analytics as any)?.costSaved || 0 };
   await db.update(aiGateway).set({ logs, analytics, updatedAt: new Date() }).where(eq(aiGateway.id, c.req.param("id")));
-  return c.json(simulatedResponse);
+  return c.json(response);
 });
 
 cloudflareAiRouter.delete("/gateway/:id", async (c) => {
@@ -141,8 +215,14 @@ cloudflareAiRouter.get("/search", async (c) => {
 
 cloudflareAiRouter.post("/search", async (c) => {
   const body = await c.req.json();
+  const realResult = await cfFetchOrNull("/ai-search/indexes", {
+    method: "POST",
+    body: JSON.stringify(body.config || body),
+  });
+  const providerId = realResult?.success ? realResult.result.id : null;
   const [created] = await db.insert(aiSearch).values({
     userId: jwtPayload(c).sub, name: body.name, config: body.config,
+    providerId,
   }).returning();
   return c.json({ search: created }, 201);
 });
@@ -193,6 +273,12 @@ cloudflareAiRouter.post("/agents/:id/chat", async (c) => {
   const body = await c.req.json();
   const [agent] = await db.select().from(aiAgents).where(eq(aiAgents.id, c.req.param("id"))).limit(1);
   if (!agent) return c.json({ error: "Not found" }, 404);
+  // Real implementation would call CF Workers AI with the agent's system prompt:
+  // const result = await cfFetchOrNull(`/ai/run/${agent.model}`, {
+  //   method: "POST",
+  //   body: JSON.stringify({ prompt: `${agent.systemPrompt}\n\nUser: ${body.message}`, stream: false }),
+  // });
+  // const response = result?.success ? result.result.response : `Simulated response...`;
   const response = `Simulated response from ${agent.name}: I received "${body.message || "hello"}". This is an AI agent running on Cloudflare Workers.`;
   const sessions = [...(agent.sessions as any[] || [])];
   const currentSession = sessions[sessions.length - 1] || { id: `session-${Date.now()}`, messages: [] };

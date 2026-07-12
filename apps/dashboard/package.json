@@ -12,6 +12,7 @@
     "@cloudhost/db": "workspace:*",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.2",
+    "drizzle-orm": "^0.30.0",
     "extract-zip": "^2.0.0",
     "jose": "^6.2.3",
     "lucide-react": "^0.370.0",

@@ -8,15 +8,18 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1085.0",
+    "@aws-sdk/lib-storage": "^3.1085.0",
     "@cloudhost/db": "workspace:*",
-    "hono": "^4.6.0",
+    "@hono/node-server": "^1.12.0",
+    "adm-zip": "^0.6.0",
     "bcryptjs": "^2.4.3",
-    "zod": "^3.22.0",
-    "nanoid": "^5.0.0",
     "dockerode": "^4.0.0",
     "drizzle-orm": "^0.30.0",
+    "hono": "^4.6.0",
+    "nanoid": "^5.0.0",
     "postgres": "^3.4.0",
-    "@hono/node-server": "^1.12.0"
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

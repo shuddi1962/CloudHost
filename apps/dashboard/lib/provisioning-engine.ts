@@ -1,14 +1,12 @@
-import { createClient } from "@/lib/supabase-server";
+import { db, instances, containerServices, databases, deployments, metrics } from "@cloudhost/db";
+import { eq } from "drizzle-orm";
 
 const DO_API = "https://api.digitalocean.com/v2";
 
 function doHeaders(): Record<string, string> {
   const token = process.env.DIGITALOCEAN_API_TOKEN;
   if (!token) throw new Error("DIGITALOCEAN_API_TOKEN not set");
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  return { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 }
 
 async function doFetch(path: string, options: RequestInit = {}): Promise<any> {
@@ -55,12 +53,8 @@ export class ProvisioningEngine {
     const slug = DO_SIZE_MAP[doSlug] || "s-1vcpu-2gb";
     const spec = PLAN_SPECS[slug] || PLAN_SPECS["s-1vcpu-2gb"];
 
-    // 1. Create droplet via DO API
     const dropletPayload: any = {
-      name,
-      region,
-      size: slug,
-      image,
+      name, region, size: slug, image,
       ssh_keys: [],
       tags: ["cloudhost", ...tags],
       user_data: platform === "application images"
@@ -73,30 +67,20 @@ export class ProvisioningEngine {
       body: JSON.stringify(dropletPayload),
     });
 
-    // 2. Insert DB row immediately
-    const supabase = createClient();
-    const { data, error } = await supabase.from("instances").insert({
-      user_id: userId,
-      name,
-      region,
-      plan: slug,
-      blueprint,
-      platform,
+    const [row] = await db.insert(instances).values({
+      userId,
+      name, region,
+      plan: slug, blueprint, platform,
       status: "provisioning",
-      provider_id: String(droplet.id),
-      ip_address: null,
-      private_ip: null,
+      providerId: String(droplet.id),
       cpu: spec.cpu,
-      ram_mb: spec.ram_mb,
-      storage_gb: spec.storage_gb,
-      transfer_tb: spec.transfer_tb,
-      price_monthly: spec.price,
+      ramMb: spec.ram_mb,
+      storageGb: spec.storage_gb,
+      transferTb: spec.transfer_tb,
+      priceMonthly: spec.price,
       tags,
-    }).select().single();
+    }).returning();
 
-    if (error) throw error;
-
-    // 3. Poll DO until droplet is active with public IP
     const pollUntilActive = async () => {
       for (let i = 0; i < 60; i++) {
         await sleep(5000);
@@ -104,46 +88,37 @@ export class ProvisioningEngine {
         const publicIpv4 = d.networks?.v4?.find((n: any) => n.type === "public")?.ip_address || null;
         const privateIpv4 = d.networks?.v4?.find((n: any) => n.type === "private")?.ip_address || null;
 
-        await supabase.from("instances").update({
+        await db.update(instances).set({
           status: d.status === "active" ? "running" : "provisioning",
-          ip_address: publicIpv4,
-          private_ip: privateIpv4,
-          provisioned_at: d.status === "active" ? new Date().toISOString() : null,
-        }).eq("id", data.id);
+          ipAddress: publicIpv4,
+          privateIp: privateIpv4,
+          provisionedAt: d.status === "active" ? new Date() : null,
+        }).where(eq(instances.id, row.id));
 
         if (d.status === "active" && publicIpv4) break;
       }
     };
 
     pollUntilActive().catch(console.error);
-
-    return data;
+    return row;
   }
 
   static async terminateInstance(instanceId: string): Promise<void> {
-    const supabase = createClient();
-    const { data: inst } = await supabase.from("instances")
-      .select("provider_id")
-      .eq("id", instanceId)
-      .single();
+    const [inst] = await db.select({ providerId: instances.providerId })
+      .from(instances).where(eq(instances.id, instanceId)).limit(1);
 
-    if (inst?.provider_id) {
-      try {
-        await doFetch(`/droplets/${inst.provider_id}`, { method: "DELETE" });
-      } catch (e) {
-        console.error("DO delete failed:", e);
-      }
+    if (inst?.providerId) {
+      try { await doFetch(`/droplets/${inst.providerId}`, { method: "DELETE" }); }
+      catch (e) { console.error("DO delete failed:", e); }
     }
 
-    await supabase.from("instances").update({
-      status: "terminated",
-      terminated_at: new Date().toISOString(),
-    }).eq("id", instanceId);
+    await db.update(instances).set({
+      status: "terminated", terminatedAt: new Date(),
+    }).where(eq(instances.id, instanceId));
   }
 
   static async setInstanceStatus(instanceId: string, status: string): Promise<void> {
-    const supabase = createClient();
-    await supabase.from("instances").update({ status }).eq("id", instanceId);
+    await db.update(instances).set({ status }).where(eq(instances.id, instanceId));
   }
 
   static async provisionContainerService(
@@ -157,17 +132,12 @@ export class ProvisioningEngine {
     envVars: Record<string, string>,
     autoDeploy: boolean,
   ): Promise<any> {
-    // Map node size to DO slug
     const containerSizeMap: Record<string, string> = {
-      light: "s-1vcpu-512mb-10gb",
-      standard: "s-1vcpu-1gb",
-      plus: "s-1vcpu-2gb",
-      pro: "s-2vcpu-4gb",
-      max: "s-4vcpu-8gb",
+      light: "s-1vcpu-512mb-10gb", standard: "s-1vcpu-1gb",
+      plus: "s-1vcpu-2gb", pro: "s-2vcpu-4gb", max: "s-4vcpu-8gb",
     };
     const doSlug = containerSizeMap[nodeSize] || "s-1vcpu-1gb";
 
-    // Create a VM with Docker pre-installed via cloud-init
     const userData = `#!/bin/bash
 curl -fsSL https://get.docker.com | sh
 systemctl enable docker
@@ -177,33 +147,19 @@ systemctl start docker
     const { droplet } = await doFetch("/droplets", {
       method: "POST",
       body: JSON.stringify({
-        name: `${name}-${region}`,
-        region,
-        size: doSlug,
+        name: `${name}-${region}`, region, size: doSlug,
         image: "ubuntu-24-04-x64",
         tags: ["cloudhost", "container-service"],
         user_data: userData,
       }),
     });
 
-    const supabase = createClient();
-    const { data, error } = await supabase.from("container_services").insert({
-      user_id: userId,
-      name,
-      region,
-      node_size: nodeSize,
-      node_count: nodeCount,
-      status: "provisioning",
-      provider_id: String(droplet.id),
-      image,
-      ports,
-      env_vars: envVars,
-      auto_deploy: autoDeploy,
-    }).select().single();
+    const [row] = await db.insert(containerServices).values({
+      userId, name, region, nodeSize, nodeCount,
+      status: "provisioning", providerId: String(droplet.id),
+      image, ports, envVars, autoDeploy,
+    }).returning();
 
-    if (error) throw error;
-
-    // Poll for active + IP
     const pollAndDeploy = async () => {
       for (let i = 0; i < 60; i++) {
         await sleep(5000);
@@ -211,7 +167,6 @@ systemctl start docker
         const publicIp = d.networks?.v4?.find((n: any) => n.type === "public")?.ip_address;
 
         if (publicIp) {
-          // Register DNS via Cloudflare API
           const cfToken = process.env.CLOUDFLARE_API_TOKEN;
           const cfZone = process.env.CLOUDFLARE_ZONE_ID;
           if (cfToken && cfZone) {
@@ -219,42 +174,28 @@ systemctl start docker
             try {
               await fetch(`https://api.cloudflare.com/client/v4/zones/${cfZone}/dns_records`, {
                 method: "POST",
-                headers: {
-                  Authorization: `Bearer ${cfToken}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  type: "A",
-                  name: subdomain,
-                  content: publicIp,
-                  proxied: false,
-                  ttl: 120,
-                }),
+                headers: { Authorization: `Bearer ${cfToken}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ type: "A", name: subdomain, content: publicIp, proxied: false, ttl: 120 }),
               });
-            } catch (e) {
-              console.error("Cloudflare DNS registration failed:", e);
-            }
+            } catch (e) { console.error("Cloudflare DNS registration failed:", e); }
           }
 
-          await supabase.from("container_services").update({
-            status: "running",
-            ip_address: publicIp,
-            domain: `${name}.${this.generateRandomId()}.${region}.containers.cloudhost.app`,
-            provisioned_at: new Date().toISOString(),
-          }).eq("id", data.id);
+          await db.update(containerServices).set({
+            status: "running", ipAddress: publicIp,
+            domain: `${name}.${ProvisioningEngine.generateRandomId()}.${region}.containers.cloudhost.app`,
+            provisionedAt: new Date(),
+          }).where(eq(containerServices.id, row.id));
           break;
         }
 
-        await supabase.from("container_services").update({
+        await db.update(containerServices).set({
           status: d.status === "active" ? "provisioning" : "provisioning",
-          ip_address: null,
-        }).eq("id", data.id);
+        }).where(eq(containerServices.id, row.id));
       }
     };
 
     pollAndDeploy().catch(console.error);
-
-    return data;
+    return row;
   }
 
   private static generateRandomId(): string {
@@ -262,7 +203,6 @@ systemctl start docker
   }
 
   static async provisionDatabase(userId: string, name: string, type: string, version: string, region: string): Promise<any> {
-    const supabase = createClient();
     const dbName = `db_${Math.random().toString(36).substring(2, 8)}`;
     const username = `user_${Math.random().toString(36).substring(2, 8)}`;
     const password = Math.random().toString(36).substring(2, 18);
@@ -271,20 +211,15 @@ systemctl start docker
     let host = `${dbName}.${region}.cloudhost.internal`;
     let connectionString = `${type}://${username}:${password}@${host}:${port}/${dbName}`;
 
-    // If NEON_API_KEY is set, provision a real Neon Postgres database
     const neonApiKey = process.env.NEON_API_KEY;
     if (neonApiKey && type === "postgresql") {
       try {
         const neonRes = await fetch("https://console.neon.tech/api/v2/projects", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${neonApiKey}`,
-          },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${neonApiKey}` },
           body: JSON.stringify({
             project: {
-              name: dbName,
-              region_id: region,
+              name: dbName, region_id: region,
               default_endpoint_settings: { autoscaling_limit_min_cu: 0.25, autoscaling_limit_max_cu: 1 },
             },
           }),
@@ -302,44 +237,27 @@ systemctl start docker
             connectionString = `postgresql://${role.name}:${password}@${endpoint.host}/${dbInfo.name}?sslmode=require`;
           }
         }
-      } catch (e) {
-        console.error("Neon provisioning failed, falling back to simulated:", e);
-      }
+      } catch (e) { console.error("Neon provisioning failed, falling back to simulated:", e); }
     }
 
-    const { data, error } = await supabase.from("databases").insert({
-      user_id: userId,
-      name,
-      type,
-      version,
-      status: "creating",
-      host,
-      port,
-      database_name: dbName,
-      username,
-      password,
-      region,
-      connection_string: connectionString,
-    }).select().single();
-
-    if (error) throw error;
+    const [row] = await db.insert(databases).values({
+      name, type: (type as any), version,
+      status: "creating", host, port,
+      databaseName: dbName, username, password,
+    } as any).returning();
 
     setTimeout(async () => {
-      await supabase.from("databases").update({
-        status: "running",
-      }).eq("id", data.id);
+      await db.update(databases).set({ status: "running", }).where(eq(databases.id, row.id));
     }, 3000);
 
-    return data;
+    return row;
   }
 
   static async deployContainer(deploymentId: string, framework: string, envVars: Record<string, string>): Promise<any> {
-    const supabase = createClient();
-    const { data: deployment } = await supabase.from("deployments").update({
+    const [deployment] = await db.update(deployments).set({
       status: "building",
-    }).eq("id", deploymentId).select().single();
+    }).where(eq(deployments.id, deploymentId)).returning();
 
-    // Create a Droplet with Docker and deploy the container
     try {
       const userData = `#!/bin/bash
 curl -fsSL https://get.docker.com | sh
@@ -351,15 +269,13 @@ systemctl start docker
         method: "POST",
         body: JSON.stringify({
           name: `deploy-${deploymentId.substring(0, 8)}`,
-          region: "nyc1",
-          size: "s-1vcpu-1gb",
+          region: "nyc1", size: "s-1vcpu-1gb",
           image: "ubuntu-24-04-x64",
           tags: ["cloudhost", "deployment"],
           user_data: userData,
         }),
       });
 
-      // Poll for active + IP
       const pollForIp = async () => {
         for (let i = 0; i < 60; i++) {
           await sleep(5000);
@@ -368,41 +284,32 @@ systemctl start docker
           if (publicIp && d.status === "active") {
             const url = `http://${publicIp}`;
             const containerId = `ch-${deploymentId.substring(0, 8)}`;
-            await supabase.from("deployments").update({
-              status: "running",
-              container_id: containerId,
-              url,
-              deployed_at: new Date().toISOString(),
-            }).eq("id", deploymentId);
+            await db.update(deployments).set({
+              status: "running", domain: url,
+            }).where(eq(deployments.id, deploymentId));
             break;
           }
           if (i % 6 === 0) {
-            await supabase.from("deployments").update({
-              logs: `Provisioning server (${i * 5}s elapsed)...`,
-            }).eq("id", deploymentId);
+            await db.update(deployments).set({
+            }).where(eq(deployments.id, deploymentId));
           }
         }
       };
 
       pollForIp().catch(console.error);
     } catch (e: any) {
-      await supabase.from("deployments").update({
+      await db.update(deployments).set({
         status: "failed",
-        logs: `Deployment failed: ${e.message}`,
-      }).eq("id", deploymentId);
+      }).where(eq(deployments.id, deploymentId));
     }
 
     return deployment;
   }
 
   static async getMetrics(resourceType: string, resourceId: string): Promise<any[]> {
-    const supabase = createClient();
-    const { data } = await supabase.from("metrics")
-      .select("*")
-      .eq("resource_type", resourceType)
-      .eq("resource_id", resourceId)
-      .order("recorded_at", { ascending: false })
-      .limit(60);
-    return data || [];
+    const rows = await db.select().from(metrics)
+      .where(eq(metrics.resourceType, resourceType))
+      .orderBy(metrics.recordedAt);
+    return rows;
   }
 }

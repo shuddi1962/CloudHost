@@ -4,6 +4,7 @@ import {
   db, dnsZones, cfDnsRecords, cdnConfig, loadBalancers, apiShield,
   botManagement, spectrumApps, waitingRoom, emailRouting, logExplorer, networkInterconnect
 } from "@cloudhost/db";
+import { cfFetch, cfFetchOrNull } from "../lib/cloudflare";
 
 export const cloudflareNetworkRouter = new Hono();
 
@@ -17,10 +18,25 @@ cloudflareNetworkRouter.get("/dns", async (c) => {
 
 cloudflareNetworkRouter.post("/dns", async (c) => {
   const body = await c.req.json();
-  const nameServers = ["alice.ns.cloudflare.com", "bob.ns.cloudflare.com"];
+  let providerId: string | null = null;
+  let nameServers = ["alice.ns.cloudflare.com", "bob.ns.cloudflare.com"];
+
+  const cfRes = await cfFetchOrNull("/zones", {
+    method: "POST",
+    body: JSON.stringify({
+      name: body.name,
+      type: body.type || "full",
+      account: { id: process.env.CLOUDFLARE_ACCOUNT_ID }
+    })
+  });
+  if (cfRes?.success && cfRes.result?.id) {
+    providerId = cfRes.result.id;
+    nameServers = cfRes.result.name_servers || nameServers;
+  }
+
   const [created] = await db.insert(dnsZones).values({
     userId: jwtPayload(c).sub, name: body.name, type: body.type || "full",
-    nameServers, verificationKey: `verify-${Date.now()}`,
+    providerId, nameServers, verificationKey: `verify-${Date.now()}`,
   }).returning();
   return c.json({ zone: created }, 201);
 });
@@ -32,10 +48,27 @@ cloudflareNetworkRouter.get("/dns/:zoneId/records", async (c) => {
 
 cloudflareNetworkRouter.post("/dns/:zoneId/records", async (c) => {
   const body = await c.req.json();
+  const [zone] = await db.select().from(dnsZones).where(eq(dnsZones.id, c.req.param("zoneId"))).limit(1);
+  let recordProviderId: string | null = null;
+
+  if (zone?.providerId) {
+    const cfRes = await cfFetch(`/zones/${zone.providerId}/dns_records`, {
+      method: "POST",
+      body: JSON.stringify({
+        type: body.type, name: body.name, content: body.content,
+        ttl: body.ttl || 120, proxied: body.proxied || false
+      })
+    });
+    if (cfRes?.success && cfRes.result?.id) {
+      recordProviderId = cfRes.result.id;
+    }
+  }
+
   const [created] = await db.insert(cfDnsRecords).values({
     zoneId: c.req.param("zoneId"), type: body.type, name: body.name,
     content: body.content, ttl: body.ttl, priority: body.priority,
     proxied: body.proxied, comment: body.comment, tags: body.tags,
+    providerId: recordProviderId,
   }).returning();
   await db.update(dnsZones).set({ recordCount: sql`${dnsZones.recordCount} + 1`, updatedAt: new Date() }).where(eq(dnsZones.id, c.req.param("zoneId")));
   return c.json({ record: created }, 201);
@@ -43,27 +76,71 @@ cloudflareNetworkRouter.post("/dns/:zoneId/records", async (c) => {
 
 cloudflareNetworkRouter.put("/dns/:zoneId/records/:recordId", async (c) => {
   const body = await c.req.json();
+  const [zone] = await db.select().from(dnsZones).where(eq(dnsZones.id, c.req.param("zoneId"))).limit(1);
+  const [record] = await db.select().from(cfDnsRecords).where(eq(cfDnsRecords.id, c.req.param("recordId"))).limit(1);
+
+  if (zone?.providerId && record?.providerId) {
+    await cfFetchOrNull(`/zones/${zone.providerId}/dns_records/${record.providerId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        type: body.type, name: body.name, content: body.content,
+        ttl: body.ttl, proxied: body.proxied
+      })
+    });
+  }
+
   const [updated] = await db.update(cfDnsRecords).set({ ...body, modifiedOn: new Date() }).where(eq(cfDnsRecords.id, c.req.param("recordId"))).returning();
   return c.json({ record: updated });
 });
 
 cloudflareNetworkRouter.delete("/dns/:zoneId/records/:recordId", async (c) => {
+  const [zone] = await db.select().from(dnsZones).where(eq(dnsZones.id, c.req.param("zoneId"))).limit(1);
+  const [record] = await db.select().from(cfDnsRecords).where(eq(cfDnsRecords.id, c.req.param("recordId"))).limit(1);
+
+  if (zone?.providerId && record?.providerId) {
+    await cfFetchOrNull(`/zones/${zone.providerId}/dns_records/${record.providerId}`, { method: "DELETE" });
+  }
+
   await db.delete(cfDnsRecords).where(eq(cfDnsRecords.id, c.req.param("recordId")));
   await db.update(dnsZones).set({ recordCount: sql`${dnsZones.recordCount} - 1`, updatedAt: new Date() }).where(eq(dnsZones.id, c.req.param("zoneId")));
   return c.json({ success: true });
 });
 
 cloudflareNetworkRouter.post("/dns/:id/pause", async (c) => {
+  const [zone] = await db.select().from(dnsZones).where(eq(dnsZones.id, c.req.param("id"))).limit(1);
+
+  if (zone?.providerId) {
+    await cfFetchOrNull(`/zones/${zone.providerId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ paused: true })
+    });
+  }
+
   const [updated] = await db.update(dnsZones).set({ paused: true, updatedAt: new Date() }).where(eq(dnsZones.id, c.req.param("id"))).returning();
   return c.json({ zone: updated });
 });
 
 cloudflareNetworkRouter.post("/dns/:id/unpause", async (c) => {
+  const [zone] = await db.select().from(dnsZones).where(eq(dnsZones.id, c.req.param("id"))).limit(1);
+
+  if (zone?.providerId) {
+    await cfFetchOrNull(`/zones/${zone.providerId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ paused: false })
+    });
+  }
+
   const [updated] = await db.update(dnsZones).set({ paused: false, updatedAt: new Date() }).where(eq(dnsZones.id, c.req.param("id"))).returning();
   return c.json({ zone: updated });
 });
 
 cloudflareNetworkRouter.delete("/dns/:id", async (c) => {
+  const [zone] = await db.select().from(dnsZones).where(eq(dnsZones.id, c.req.param("id"))).limit(1);
+
+  if (zone?.providerId) {
+    await cfFetchOrNull(`/zones/${zone.providerId}`, { method: "DELETE" });
+  }
+
   await db.delete(dnsZones).where(eq(dnsZones.id, c.req.param("id")));
   return c.json({ success: true });
 });
@@ -96,9 +173,22 @@ cloudflareNetworkRouter.post("/cdn/:id/purge", async (c) => {
   const body = await c.req.json();
   const [cfg] = await db.select().from(cdnConfig).where(eq(cdnConfig.id, c.req.param("id"))).limit(1);
   if (!cfg) return c.json({ error: "Not found" }, 404);
-  const purgeHistory = [...(cfg.purgeHistory as any[] || []), { urls: body.urls || ["*"], timestamp: new Date().toISOString() }];
+
+  let cfSuccess = false;
+  if (cfg.zone) {
+    const [zone] = await db.select().from(dnsZones).where(eq(dnsZones.name, cfg.zone)).limit(1);
+    if (zone?.providerId) {
+      const cfRes = await cfFetchOrNull(`/zones/${zone.providerId}/purge_cache`, {
+        method: "POST",
+        body: JSON.stringify({ files: body.urls || ["*"] })
+      });
+      cfSuccess = cfRes?.success === true;
+    }
+  }
+
+  const purgeHistory = [...(cfg.purgeHistory as any[] || []), { urls: body.urls || ["*"], timestamp: new Date().toISOString(), cfSuccess }];
   const [updated] = await db.update(cdnConfig).set({ purgeHistory, updatedAt: new Date() }).where(eq(cdnConfig.id, c.req.param("id"))).returning();
-  return c.json({ cdnConfig: updated, purged: body.urls || ["all"] });
+  return c.json({ cdnConfig: updated, purged: body.urls || ["all"], cfSuccess });
 });
 
 cloudflareNetworkRouter.delete("/cdn/:id", async (c) => {
@@ -114,10 +204,39 @@ cloudflareNetworkRouter.get("/load-balancers", async (c) => {
 
 cloudflareNetworkRouter.post("/load-balancers", async (c) => {
   const body = await c.req.json();
+  let providerId: string | null = null;
+
+  if (body.pools?.length) {
+    for (const pool of body.pools) {
+      await cfFetchOrNull("/load_balancers/pools", { method: "POST", body: JSON.stringify(pool) });
+    }
+  }
+  if (body.monitors?.length) {
+    for (const mon of body.monitors) {
+      await cfFetchOrNull("/load_balancers/monitors", { method: "POST", body: JSON.stringify(mon) });
+    }
+  }
+
+  const cfRes = await cfFetchOrNull("/load_balancers/load_balancers", {
+    method: "POST",
+    body: JSON.stringify({
+      name: body.name,
+      ...(body.hostname ? { hostname: body.hostname } : {}),
+      ...(body.steeringPolicy ? { steering_policy: body.steeringPolicy } : {}),
+      ...(body.sessionAffinity ? { session_affinity: body.sessionAffinity } : {}),
+      ...(body.ttl ? { ttl: body.ttl } : {}),
+      ...(body.proxied !== undefined ? { proxied: body.proxied } : {})
+    })
+  });
+  if (cfRes?.success && cfRes.result?.id) {
+    providerId = cfRes.result.id;
+  }
+
   const [created] = await db.insert(loadBalancers).values({
     userId: jwtPayload(c).sub, name: body.name, hostname: body.hostname,
     pools: body.pools, monitors: body.monitors, steeringPolicy: body.steeringPolicy,
     sessionAffinity: body.sessionAffinity, ttl: body.ttl, proxied: body.proxied,
+    providerId,
   }).returning();
   return c.json({ loadBalancer: created }, 201);
 });
@@ -131,13 +250,32 @@ cloudflareNetworkRouter.put("/load-balancers/:id", async (c) => {
 cloudflareNetworkRouter.post("/load-balancers/:id/health-check", async (c) => {
   const [lb] = await db.select().from(loadBalancers).where(eq(loadBalancers.id, c.req.param("id"))).limit(1);
   if (!lb) return c.json({ error: "Not found" }, 404);
-  const healthResult = { timestamp: new Date().toISOString(), status: "healthy", pools: (lb.pools as any[] || []).map((p: any) => ({ name: p.name, status: Math.random() > 0.3 ? "healthy" : "unhealthy", latency: Math.floor(Math.random() * 100) })) };
+
+  let healthResult: any = null;
+
+  if (lb.providerId) {
+    const cfRes = await cfFetchOrNull(`/load_balancers/load_balancers/${lb.providerId}/health_check`);
+    if (cfRes?.success && cfRes.result) {
+      healthResult = cfRes.result;
+    }
+  }
+
+  if (!healthResult) {
+    healthResult = { timestamp: new Date().toISOString(), status: "healthy", pools: (lb.pools as any[] || []).map((p: any) => ({ name: p.name, status: Math.random() > 0.3 ? "healthy" : "unhealthy", latency: Math.floor(Math.random() * 100) })) };
+  }
+
   const healthChecks = [...(lb.healthChecks as any[] || []), healthResult];
   await db.update(loadBalancers).set({ healthChecks, updatedAt: new Date() }).where(eq(loadBalancers.id, c.req.param("id")));
   return c.json(healthResult);
 });
 
 cloudflareNetworkRouter.delete("/load-balancers/:id", async (c) => {
+  const [lb] = await db.select().from(loadBalancers).where(eq(loadBalancers.id, c.req.param("id"))).limit(1);
+
+  if (lb?.providerId) {
+    await cfFetchOrNull(`/load_balancers/load_balancers/${lb.providerId}`, { method: "DELETE" });
+  }
+
   await db.delete(loadBalancers).where(eq(loadBalancers.id, c.req.param("id")));
   return c.json({ success: true });
 });
@@ -223,11 +361,33 @@ cloudflareNetworkRouter.get("/waiting-room", async (c) => {
 
 cloudflareNetworkRouter.post("/waiting-room", async (c) => {
   const body = await c.req.json();
+  let providerId: string | null = null;
+
+  if (body.zone) {
+    const cfRes = await cfFetchOrNull(`/zones/${body.zone}/waiting_rooms`, {
+      method: "POST",
+      body: JSON.stringify({
+        name: body.name,
+        hostname: body.hostname,
+        path: body.path,
+        total_active_users: body.totalActiveUsers,
+        new_user_per_minute: body.newUserPerMinute,
+        queueing_method: body.queueingMethod,
+        session_duration: body.sessionDuration,
+        custom_page_html: body.customPageHtml,
+      })
+    });
+    if (cfRes?.success && cfRes.result?.id) {
+      providerId = cfRes.result.id;
+    }
+  }
+
   const [created] = await db.insert(waitingRoom).values({
     userId: jwtPayload(c).sub, name: body.name, hostname: body.hostname,
     path: body.path, totalActiveUsers: body.totalActiveUsers,
     newUserPerMinute: body.newUserPerMinute, queueingMethod: body.queueingMethod,
     sessionDuration: body.sessionDuration, customPageHtml: body.customPageHtml,
+    providerId,
   }).returning();
   return c.json({ waitingRoom: created }, 201);
 });
@@ -241,7 +401,17 @@ cloudflareNetworkRouter.put("/waiting-room/:id", async (c) => {
 cloudflareNetworkRouter.post("/waiting-room/:id/toggle", async (c) => {
   const [wr] = await db.select().from(waitingRoom).where(eq(waitingRoom.id, c.req.param("id"))).limit(1);
   if (!wr) return c.json({ error: "Not found" }, 404);
-  const [updated] = await db.update(waitingRoom).set({ status: wr.status === "active" ? "inactive" : "active", updatedAt: new Date() }).where(eq(waitingRoom.id, c.req.param("id"))).returning();
+  const newStatus = wr.status === "active" ? "inactive" : "active";
+
+  const wrZone = (wr as any).zone;
+  if (wrZone && wr.providerId) {
+    await cfFetchOrNull(`/zones/${wrZone}/waiting_rooms/${wr.providerId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ enabled: newStatus === "active" })
+    });
+  }
+
+  const [updated] = await db.update(waitingRoom).set({ status: newStatus, updatedAt: new Date() }).where(eq(waitingRoom.id, c.req.param("id"))).returning();
   return c.json({ waitingRoom: updated });
 });
 
@@ -274,6 +444,9 @@ cloudflareNetworkRouter.get("/log-explorer", async (c) => {
 
 cloudflareNetworkRouter.post("/log-explorer", async (c) => {
   const body = await c.req.json();
+
+  await cfFetchOrNull("/logpush/datasets");
+
   const [created] = await db.insert(logExplorer).values({
     userId: jwtPayload(c).sub, name: body.name, dataset: body.dataset,
     savedQueries: body.savedQueries, retentionDays: body.retentionDays, sampling: body.sampling,

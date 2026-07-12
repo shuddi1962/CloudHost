@@ -4,6 +4,7 @@ import {
   db, r2Buckets, r2Objects, d1Databases, kvNamespaces, kvEntries,
   queues, hyperdriveDatabases, cacheReserve, artifacts, dataPlatform
 } from "@cloudhost/db";
+import { cfFetch, cfFetchOrNull, cfHeaders } from "../lib/cloudflare";
 
 export const cloudflareStorageRouter = new Hono();
 
@@ -17,10 +18,12 @@ cloudflareStorageRouter.get("/r2", async (c) => {
 
 cloudflareStorageRouter.post("/r2", async (c) => {
   const body = await c.req.json();
+  const cfResult = await cfFetchOrNull("/r2/buckets", { method: "POST", body: JSON.stringify({ name: body.name, location: body.region }) });
   const [created] = await db.insert(r2Buckets).values({
     userId: jwtPayload(c).sub, name: body.name, description: body.description,
     visibility: body.visibility, region: body.region, lifecycleRules: body.lifecycleRules,
     corsRules: body.corsRules,
+    ...(cfResult?.success ? { providerId: cfResult.result.bucket_id, endpoint: cfResult.result.endpoint } : {}),
   }).returning();
   return c.json({ bucket: created }, 201);
 });
@@ -50,6 +53,11 @@ cloudflareStorageRouter.get("/r2/:bucketId/objects", async (c) => {
 
 cloudflareStorageRouter.post("/r2/:bucketId/objects", async (c) => {
   const body = await c.req.json();
+  const [bucket] = await db.select().from(r2Buckets).where(eq(r2Buckets.id, c.req.param("bucketId"))).limit(1);
+  if (bucket) {
+    const providerId = bucket.providerId || bucket.id;
+    await cfFetchOrNull(`/r2/buckets/${providerId}/objects/${body.key}`, { method: "PUT", body: JSON.stringify(body) });
+  }
   const [created] = await db.insert(r2Objects).values({
     bucketId: c.req.param("bucketId"), key: body.key, size: body.size || 0,
     contentType: body.contentType, metadata: body.metadata, isPublic: body.isPublic,
@@ -61,6 +69,11 @@ cloudflareStorageRouter.post("/r2/:bucketId/objects", async (c) => {
 cloudflareStorageRouter.delete("/r2/:bucketId/objects/:objectId", async (c) => {
   const [obj] = await db.select().from(r2Objects).where(eq(r2Objects.id, c.req.param("objectId"))).limit(1);
   if (obj) {
+    const [bucket] = await db.select().from(r2Buckets).where(eq(r2Buckets.id, c.req.param("bucketId"))).limit(1);
+    if (bucket) {
+      const providerId = bucket.providerId || bucket.id;
+      await cfFetchOrNull(`/r2/buckets/${providerId}/objects/${obj.key}`, { method: "DELETE" });
+    }
     await db.update(r2Buckets).set({ objectCount: sql`${r2Buckets.objectCount} - 1`, totalSize: sql`${r2Buckets.totalSize} - ${obj.size || 0}` }).where(eq(r2Buckets.id, c.req.param("bucketId")));
   }
   await db.delete(r2Objects).where(eq(r2Objects.id, c.req.param("objectId")));
@@ -75,8 +88,10 @@ cloudflareStorageRouter.get("/d1", async (c) => {
 
 cloudflareStorageRouter.post("/d1", async (c) => {
   const body = await c.req.json();
+  const cfResult = await cfFetchOrNull("/d1/database", { method: "POST", body: JSON.stringify({ name: body.name, ...(body.region ? { primary_location_hint: body.region } : {}) }) });
   const [created] = await db.insert(d1Databases).values({
     userId: jwtPayload(c).sub, name: body.name, region: body.region,
+    ...(cfResult?.success ? { providerId: cfResult.result.uuid } : {}),
   }).returning();
   return c.json({ database: created }, 201);
 });
@@ -85,9 +100,16 @@ cloudflareStorageRouter.post("/d1/:id/query", async (c) => {
   const body = await c.req.json();
   const [dbItem] = await db.select().from(d1Databases).where(eq(d1Databases.id, c.req.param("id"))).limit(1);
   if (!dbItem) return c.json({ error: "Not found" }, 404);
-  const queries = [...(dbItem.queries as any[] || []), { sql: body.sql, executedAt: new Date().toISOString(), rowCount: body.sql ? 10 : 0 }];
+  let cfResults: any = { results: [{ id: 1, name: "result" }], rowsRead: 5, rowsWritten: 0 };
+  if (dbItem.providerId) {
+    const cfResult = await cfFetchOrNull(`/d1/database/${dbItem.providerId}/query`, { method: "POST", body: JSON.stringify({ sql: body.sql }) });
+    if (cfResult?.success) {
+      cfResults = cfResult.result[0];
+    }
+  }
+  const queries = [...(dbItem.queries as any[] || []), { sql: body.sql, executedAt: new Date().toISOString(), rowCount: cfResults.rowsRead || 0 }];
   await db.update(d1Databases).set({ queries, updatedAt: new Date() }).where(eq(d1Databases.id, c.req.param("id")));
-  return c.json({ results: [{ id: 1, name: "result" }], rowsRead: 5, rowsWritten: 0 });
+  return c.json({ results: cfResults.results || cfResults, rowsRead: cfResults.rowsRead || 0, rowsWritten: cfResults.rowsWritten || 0 });
 });
 
 cloudflareStorageRouter.delete("/d1/:id", async (c) => {
@@ -103,8 +125,10 @@ cloudflareStorageRouter.get("/kv", async (c) => {
 
 cloudflareStorageRouter.post("/kv", async (c) => {
   const body = await c.req.json();
+  const cfResult = await cfFetchOrNull("/storage/kv/namespaces", { method: "POST", body: JSON.stringify({ title: body.title }) });
   const [created] = await db.insert(kvNamespaces).values({
     userId: jwtPayload(c).sub, title: body.title, description: body.description,
+    ...(cfResult?.success ? { providerId: cfResult.result.id } : {}),
   }).returning();
   return c.json({ namespace: created }, 201);
 });
@@ -116,6 +140,10 @@ cloudflareStorageRouter.get("/kv/:namespaceId/entries", async (c) => {
 
 cloudflareStorageRouter.post("/kv/:namespaceId/entries", async (c) => {
   const body = await c.req.json();
+  const [ns] = await db.select().from(kvNamespaces).where(eq(kvNamespaces.id, c.req.param("namespaceId"))).limit(1);
+  if (ns?.providerId) {
+    await cfFetchOrNull(`/storage/kv/namespaces/${ns.providerId}/values/${encodeURIComponent(body.key)}`, { method: "PUT", body: JSON.stringify(body.value) });
+  }
   const [created] = await db.insert(kvEntries).values({
     namespaceId: c.req.param("namespaceId"), key: body.key, value: body.value,
     metadata: body.metadata, expirationTtl: body.expirationTtl,
@@ -143,9 +171,11 @@ cloudflareStorageRouter.get("/queues", async (c) => {
 
 cloudflareStorageRouter.post("/queues", async (c) => {
   const body = await c.req.json();
+  const cfResult = await cfFetchOrNull("/queues", { method: "POST", body: JSON.stringify({ name: body.name }) });
   const [created] = await db.insert(queues).values({
     userId: jwtPayload(c).sub, name: body.name, type: body.type,
     maxRetries: body.maxRetries, maxConcurrency: body.maxConcurrency, retentionPeriod: body.retentionPeriod,
+    ...(cfResult?.success ? { providerId: cfResult.result.queue_id || cfResult.result.id } : {}),
   }).returning();
   return c.json({ queue: created }, 201);
 });
@@ -172,10 +202,12 @@ cloudflareStorageRouter.get("/hyperdrive", async (c) => {
 
 cloudflareStorageRouter.post("/hyperdrive", async (c) => {
   const body = await c.req.json();
+  const cfResult = await cfFetchOrNull("/hyperdrive", { method: "POST", body: JSON.stringify({ name: body.name, origin: { host: body.originHost, port: body.originPort, database: body.originDatabase } }) });
   const [created] = await db.insert(hyperdriveDatabases).values({
     userId: jwtPayload(c).sub, name: body.name, connectionString: body.connectionString,
     originHost: body.originHost, originPort: body.originPort, originDatabase: body.originDatabase,
     cachedConnections: body.cachedConnections, maxAge: body.maxAge, poolSize: body.poolSize,
+    ...(cfResult?.success ? { providerId: cfResult.result.id } : {}),
   }).returning();
   return c.json({ database: created }, 201);
 });
@@ -210,6 +242,9 @@ cloudflareStorageRouter.post("/cache-reserve/:id/purge", async (c) => {
   const body = await c.req.json();
   const [cr] = await db.select().from(cacheReserve).where(eq(cacheReserve.id, c.req.param("id"))).limit(1);
   if (!cr) return c.json({ error: "Not found" }, 404);
+  if (cr.zone) {
+    await cfFetchOrNull(`/zones/${cr.zone}/purge_cache`, { method: "POST", body: JSON.stringify({ files: body.urls || ["*"] }) });
+  }
   const purgeHistory = [...(cr.purgeHistory as any[] || []), { urls: body.urls || ["*"], timestamp: new Date().toISOString() }];
   await db.update(cacheReserve).set({ purgeHistory, updatedAt: new Date() }).where(eq(cacheReserve.id, c.req.param("id")));
   return c.json({ success: true, purged: body.urls || ["all"] });

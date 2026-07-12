@@ -45,6 +45,7 @@ export const vectorizeIndexes = pgTable("vectorize_indexes", {
   metric: text("metric").default("cosine"),
   vectors: jsonb("vectors").default([]),
   vectorCount: integer("vector_count").default(0),
+  providerId: text("provider_id"),
   config: jsonb("config").default({ similarity: "cosine", quantization: "fp32" }),
   usage: jsonb("usage").default({ queries: 0, vectorsInserted: 0, storage: 0 }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -65,6 +66,7 @@ export const aiGateway = pgTable("ai_gateway", {
   logs: jsonb("logs").default([]),
   analytics: jsonb("analytics").default({ totalRequests: 0, cachedResponses: 0, tokensSaved: 0, costSaved: 0 }),
   fallbackProviders: jsonb("fallback_providers").default([]),
+  providerId: text("provider_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -78,6 +80,7 @@ export const aiSearch = pgTable("ai_search", {
   documents: jsonb("documents").default([]),
   searchHistory: jsonb("search_history").default([]),
   config: jsonb("config").default({ chunkSize: 512, chunkOverlap: 64, embeddingModel: "@cf/baai/bge-base-en-v1.5" }),
+  providerId: text("provider_id"),
   usage: jsonb("usage").default({ searches: 0, documentsIndexed: 0, storage: 0 }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -32,6 +32,7 @@ import { containerServicesRouter } from "./routes/container-services";
 import { hostingRouter } from "./routes/hosting";
 import { dockerRouter } from "./routes/docker-deployments";
 import { marketplaceRouter } from "./routes/marketplace";
+import { deployUploadRouter } from "./routes/deploy-from-upload";
 
 import { cloudflareComputeRouter } from "./routes/cloudflare-compute";
 import { cloudflareStorageRouter } from "./routes/cloudflare-storage";
@@ -104,6 +105,7 @@ app.route("/api/domain-services", domainServicesRouter);
 app.route("/api/business-tools", businessToolsRouter);
 app.route("/api/marketing-suite", marketingSuiteRouter);
 app.route("/api/hostinger-services", hostingerServicesRouter);
+app.route("/api/deploy-upload", deployUploadRouter);
 
 const port = parseInt(process.env.API_PORT || "3001");
 console.log(`API server running on port ${port}`);
