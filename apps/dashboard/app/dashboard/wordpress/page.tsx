@@ -27,7 +27,7 @@ export default function WordPressPage() {
   const fetchSites = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("http://localhost:3001/api/wordpress/", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/wordpress/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -45,7 +45,7 @@ export default function WordPressPage() {
     if (!confirm("Delete this WordPress site? This action cannot be undone.")) return;
     const token = localStorage.getItem("token");
     try {
-      await fetch(`http://localhost:3001/api/wordpress/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/wordpress/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -58,7 +58,7 @@ export default function WordPressPage() {
   const handleAction = async (id: string, action: string) => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`http://localhost:3001/api/wordpress/${id}/${action}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/wordpress/${id}/${action}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

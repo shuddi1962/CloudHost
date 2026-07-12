@@ -33,7 +33,7 @@ export default function InstanceDetail() {
 
   const fetchInstance = () => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:3001/api/marketplace/instances/${id}`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/instances/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => {
@@ -48,7 +48,7 @@ export default function InstanceDetail() {
 
   const fetchLogs = () => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:3001/api/marketplace/instances/${id}/logs`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/instances/${id}/logs`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -64,7 +64,7 @@ export default function InstanceDetail() {
   const handleAction = (action: "start" | "stop" | "restart") => {
     setActionLoading(action);
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:3001/api/marketplace/instances/${id}/${action}`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/instances/${id}/${action}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     })

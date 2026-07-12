@@ -34,7 +34,7 @@ export default function CreateCronJobPage() {
     setSaving(true);
     const token = localStorage.getItem("token");
     try {
-      await fetch("http://localhost:3001/api/cron-jobs", {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/cron-jobs`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),

@@ -112,7 +112,7 @@ export default function SubscriptionsPage() {
     setCancellingId(id)
     try {
       const token = getToken()
-      const res = await fetch(`http://localhost:3001/api/marketplace/subscriptions/${id}/cancel`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/subscriptions/${id}/cancel`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })

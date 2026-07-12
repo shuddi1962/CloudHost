@@ -19,7 +19,7 @@ interface Metrics {
   cpu: number; ram: number; disk: number; bandwidth: number; uptime: string; loadAverage: number[];
 }
 
-const API = "http://localhost:3001/api/business-tools/dedicated-servers";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/business-tools/dedicated-servers`;
 
 export default function DedicatedServersPage() {
   const [plans, setPlans] = useState<Plan[]>([]);

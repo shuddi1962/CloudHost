@@ -13,8 +13,8 @@ export default function PHPSettingsPage() {
     const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
-      fetch("http://localhost:3001/api/hosting/account/00000000-0000-0000-0000-000000000000/php-settings", { headers }).then(r => r.json()),
-      fetch("http://localhost:3001/api/hosting/php-info", { headers }).then(r => r.json()),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hosting/account/00000000-0000-0000-0000-000000000000/php-settings`, { headers }).then(r => r.json()),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hosting/php-info`, { headers }).then(r => r.json()),
     ]).then(([settingsData, infoData]) => {
       const s = settingsData.settings;
       setSettings(s);
@@ -27,7 +27,7 @@ export default function PHPSettingsPage() {
     e.preventDefault();
     setSaving(true);
     const token = localStorage.getItem("token");
-    await fetch("http://localhost:3001/api/hosting/account/00000000-0000-0000-0000-000000000000/php-settings", {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hosting/account/00000000-0000-0000-0000-000000000000/php-settings`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),

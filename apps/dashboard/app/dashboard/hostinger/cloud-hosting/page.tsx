@@ -42,7 +42,7 @@ export default function CloudHostingPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:3001/api/hostinger-services/cloud-hosting", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/cloud-hosting`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -53,7 +53,7 @@ export default function CloudHostingPage() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch("http://localhost:3001/api/hostinger-services/cloud-hosting", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/cloud-hosting`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),
@@ -69,7 +69,7 @@ export default function CloudHostingPage() {
   const showMetrics = async (inst: Instance) => {
     setSelected(inst);
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/hostinger-services/cloud-hosting/${inst.id}/metrics`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/cloud-hosting/${inst.id}/metrics`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (res.ok) {
@@ -80,7 +80,7 @@ export default function CloudHostingPage() {
 
   const deleteInstance = async (id: string) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/hostinger-services/cloud-hosting/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/cloud-hosting/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -89,7 +89,7 @@ export default function CloudHostingPage() {
 
   const stopInstance = async (id: string) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/hostinger-services/cloud-hosting/${id}/stop`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/cloud-hosting/${id}/stop`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

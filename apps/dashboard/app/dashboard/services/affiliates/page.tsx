@@ -27,7 +27,7 @@ export default function AffiliatesPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3001/api/marketing-suite/affiliates", { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/affiliates`, { headers });
       const d = await res.json();
       setData(d.affiliate || d);
     } catch {} finally { setLoading(false); }
@@ -38,7 +38,7 @@ export default function AffiliatesPage() {
   const join = async () => {
     setJoining(true);
     try {
-      const res = await fetch("http://localhost:3001/api/marketing-suite/affiliates/join", { method: "POST", headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/affiliates/join`, { method: "POST", headers });
       const d = await res.json();
       setData(d.affiliate || d);
     } catch {} finally { setJoining(false); }
@@ -46,7 +46,7 @@ export default function AffiliatesPage() {
 
   const generateLink = async () => {
     try {
-      const res = await fetch("http://localhost:3001/api/marketing-suite/affiliates/generate-link", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/affiliates/generate-link`, {
         method: "POST", headers,
         body: JSON.stringify({}),
       });

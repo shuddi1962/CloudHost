@@ -12,7 +12,7 @@ export default function RLSPoliciesPage() {
 
   const fetchPolicies = async () => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/rls/database/${params.id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/rls/database/${params.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -25,7 +25,7 @@ export default function RLSPoliciesPage() {
   const createPolicy = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    await fetch("http://localhost:3001/api/rls", {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/rls`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ ...form, databaseId: params.id }),
@@ -37,7 +37,7 @@ export default function RLSPoliciesPage() {
 
   const togglePolicy = async (id: string) => {
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:3001/api/rls/${id}/toggle`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/rls/${id}/toggle`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -47,7 +47,7 @@ export default function RLSPoliciesPage() {
   const deletePolicy = async (id: string) => {
     if (!confirm("Delete this RLS policy?")) return;
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:3001/api/rls/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/rls/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

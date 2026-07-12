@@ -20,7 +20,7 @@ export default function TldsPage() {
       const params = new URLSearchParams();
       if (category) params.set("category", category);
       if (popularOnly) params.set("popular", "true");
-      const res = await fetch(`http://localhost:3001/api/domain-services/tlds?${params}`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/tlds?${params}`, { headers });
       const data = await res.json();
       setTlds(data.tlds || []);
     } catch (e) {

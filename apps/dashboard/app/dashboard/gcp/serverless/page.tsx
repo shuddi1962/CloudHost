@@ -81,7 +81,7 @@ export default function ServerlessPage() {
           {services.map((service) => (
             <Link
               key={service.name}
-              href="#"
+              href="/dashboard/coming-soon"
               className="group block bg-white rounded-xl border border-gray-200 p-5 hover:border-blue-600 hover:shadow-md transition-all duration-200"
             >
               <div className="flex items-start gap-4">

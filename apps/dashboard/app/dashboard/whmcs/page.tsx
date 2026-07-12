@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const API = "http://localhost:3001/api/whmcs";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/whmcs`;
 
 const defaultStatCards = [
   { label: "Services", value: "4", href: "/dashboard/projects", borderColor: "border-l-[#3cb878]", icon: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" },

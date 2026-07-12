@@ -37,7 +37,7 @@ export default function StatusPage() {
   const loadStatus = () => {
     setLoading(true);
     const token = localStorage.getItem("token");
-    fetch("http://localhost:3001/api/hostinger-services/status", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/status`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())

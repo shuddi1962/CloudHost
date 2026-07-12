@@ -5,57 +5,57 @@ export default function ManagementPage() {
     {
       title: "APIs & Services",
       description: "API management for cloud services",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Google Auth Platform",
       description: "OAuth config and credentials",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Billing",
       description: "Cost management and budgeting",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Organizations",
       description: "Manage org ownership and settings",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Google Cloud Setup",
       description: "Best-practice foundation setup",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Admin for Gemini",
       description: "Purchase/manage Gemini products",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Cloud Hub",
       description: "Unified cloud insights",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Quotas & System Limits",
       description: "",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Audit Logs",
       description: "",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Essential Contacts",
       description: "",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Privacy & Security",
       description: "Access Risk",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
   ];
 

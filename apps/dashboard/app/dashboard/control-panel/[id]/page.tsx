@@ -13,7 +13,7 @@ export default function ControlPanelPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:3001/api/hosting/account/${params.id}`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hosting/account/${params.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     }).then(r => r.json()).then(data => {
       setAccount(data.account);

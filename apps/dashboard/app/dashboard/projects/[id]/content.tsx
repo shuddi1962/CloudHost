@@ -23,10 +23,10 @@ export default function ProjectDetailPage() {
     const fetchAll = async () => {
       try {
         const [projRes, depRes, dbRes, domRes] = await Promise.all([
-          fetch(`http://localhost:3001/api/projects/${id}`, { headers }),
-          fetch("http://localhost:3001/api/deployments", { headers }),
-          fetch("http://localhost:3001/api/databases", { headers }),
-          fetch("http://localhost:3001/api/domains", { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/projects/${id}`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/deployments`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/databases`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domains`, { headers }),
         ]);
         const projData = await projRes.json();
         const depData = await depRes.json();

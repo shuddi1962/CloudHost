@@ -33,7 +33,7 @@ export default function EditCronJobPage() {
     const fetchJob = async () => {
       const token = localStorage.getItem("token");
       try {
-        const res = await fetch(`http://localhost:3001/api/cron-jobs/${params.id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/cron-jobs/${params.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -71,7 +71,7 @@ export default function EditCronJobPage() {
     setSaving(true);
     const token = localStorage.getItem("token");
     try {
-      await fetch(`http://localhost:3001/api/cron-jobs/${params.id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/cron-jobs/${params.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),

@@ -71,7 +71,7 @@ export default function CreateWordPressPage() {
     setSubmitting(true);
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("http://localhost:3001/api/wordpress/", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/wordpress/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({

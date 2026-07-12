@@ -14,7 +14,7 @@ export default function RealtimePage() {
 
   const fetchSubscriptions = async () => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/realtime/database/${params.id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/realtime/database/${params.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -27,7 +27,7 @@ export default function RealtimePage() {
   const createSubscription = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    await fetch("http://localhost:3001/api/realtime", {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/realtime`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ ...form, databaseId: params.id }),
@@ -39,7 +39,7 @@ export default function RealtimePage() {
 
   const toggleSubscription = async (id: string) => {
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:3001/api/realtime/${id}/toggle`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/realtime/${id}/toggle`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -49,7 +49,7 @@ export default function RealtimePage() {
   const viewMessages = async (id: string) => {
     setViewingMessages(id);
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/realtime/${id}/messages`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/realtime/${id}/messages`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -59,7 +59,7 @@ export default function RealtimePage() {
   const deleteSubscription = async (id: string) => {
     if (!confirm("Delete this subscription?")) return;
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:3001/api/realtime/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/realtime/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

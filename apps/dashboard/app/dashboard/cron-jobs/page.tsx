@@ -38,7 +38,7 @@ export default function CronJobsPage() {
   const fetchJobs = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("http://localhost:3001/api/cron-jobs", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/cron-jobs`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -55,7 +55,7 @@ export default function CronJobsPage() {
     if (!confirm("Delete this cron job?")) return;
     const token = localStorage.getItem("token");
     try {
-      await fetch(`http://localhost:3001/api/cron-jobs/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/cron-jobs/${id}`, {
         method: "DELETE", headers: { Authorization: `Bearer ${token}` },
       });
       fetchJobs();
@@ -67,7 +67,7 @@ export default function CronJobsPage() {
   const runNow = async (id: string) => {
     const token = localStorage.getItem("token");
     try {
-      await fetch(`http://localhost:3001/api/cron-jobs/${id}/run`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/cron-jobs/${id}/run`, {
         method: "POST", headers: { Authorization: `Bearer ${token}` },
       });
     } catch {}

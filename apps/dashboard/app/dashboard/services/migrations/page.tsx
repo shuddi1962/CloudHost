@@ -12,7 +12,7 @@ interface Migration {
   preserveSettings: string[];
 }
 
-const API = "http://localhost:3001/api/business-tools/migrations";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/business-tools/migrations`;
 
 export default function MigrationsPage() {
   const [migrations, setMigrations] = useState<Migration[]>([]);

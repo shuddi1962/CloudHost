@@ -18,7 +18,7 @@ export default function DomainVaultPage() {
 
   const fetchVault = async () => {
     try {
-      const res = await fetch("http://localhost:3001/api/domain-services/vault", { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/vault`, { headers });
       const data = await res.json();
       setVault(data.vault || []);
     } catch (e) {
@@ -33,7 +33,7 @@ export default function DomainVaultPage() {
   const addToVault = async (e: React.FormEvent) => {
     e.preventDefault();
     const contacts = trustedContacts.split(",").map(s => s.trim()).filter(Boolean);
-    const res = await fetch("http://localhost:3001/api/domain-services/vault", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/vault`, {
       method: "POST", headers,
       body: JSON.stringify({ domain, vaultLevel, trustedContacts: contacts.length > 0 ? contacts : undefined }),
     });
@@ -47,7 +47,7 @@ export default function DomainVaultPage() {
   const requestUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!unlockModal) return;
-    const res = await fetch(`http://localhost:3001/api/domain-services/vault/${unlockModal}/unlock`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/vault/${unlockModal}/unlock`, {
       method: "POST", headers,
       body: JSON.stringify({ reason: unlockReason }),
     });
@@ -59,7 +59,7 @@ export default function DomainVaultPage() {
   };
 
   const approveUnlock = async (id: string) => {
-    const res = await fetch(`http://localhost:3001/api/domain-services/vault/${id}/approve-unlock`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/domain-services/vault/${id}/approve-unlock`, {
       method: "POST", headers,
     });
     if (res.ok) {

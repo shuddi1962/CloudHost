@@ -31,7 +31,7 @@ export default function BusinessCardsPage() {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3001/api/marketing-suite/business-cards", { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/business-cards`, { headers });
       const data = await res.json();
       setProjects(data.projects || data.cards || []);
     } catch {} finally { setLoading(false); }
@@ -44,7 +44,7 @@ export default function BusinessCardsPage() {
     if (!name.trim()) return;
     setGenerating(true);
     try {
-      const res = await fetch("http://localhost:3001/api/marketing-suite/business-cards", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/business-cards`, {
         method: "POST", headers,
         body: JSON.stringify({ name: name.trim(), primaryColor, secondaryColor, font, format }),
       });

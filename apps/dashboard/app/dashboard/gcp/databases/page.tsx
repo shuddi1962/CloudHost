@@ -7,92 +7,92 @@ const services = [
     name: "Database Center",
     desc: "Centralized management for all your GCP databases",
     icon: "🎛️",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "AlloyDB for PostgreSQL",
     desc: "Fully managed, PostgreSQL-compatible database for demanding workloads",
     icon: "🐘",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Cloud SQL",
     desc: "Fully managed MySQL, PostgreSQL, and SQL Server databases",
     icon: "🗃️",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Datastore",
     desc: "NoSQL document database for scalable, high-availability apps",
     icon: "📄",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Firestore",
     desc: "Serverless NoSQL document database with real-time sync",
     icon: "🔥",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Spanner",
     desc: "Globally distributed, strongly consistent relational database",
     icon: "🌍",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Bigtable",
     desc: "Fully managed, scalable NoSQL database for large analytical workloads",
     icon: "📈",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Memorystore",
     desc: "Managed in-memory caching with Valkey, Redis, and Memcached",
     icon: "⚡",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Database Migration Service",
     desc: "Simplify and accelerate database migrations to GCP",
     icon: "🔄",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "MongoDB Atlas",
     desc: "MongoDB Atlas on Google Cloud — fully managed NoSQL",
     icon: "🍃",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Neo4j Aura",
     desc: "Managed graph database powered by Neo4j on GCP",
     icon: "🔗",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Redis Cloud",
     desc: "Enterprise-grade Redis on Google Cloud",
     icon: "📦",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Oracle AI Database@Google Cloud",
     desc: "Oracle database services with AI capabilities on GCP",
     icon: "🟠",
-    status: "Preview",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
 ];
 
@@ -119,9 +119,7 @@ export default function GcpDatabasesPage() {
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-blue-600 rounded-lg flex items-center justify-center text-white text-lg">
                 {s.icon}
               </div>
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                s.status === "GA" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-              }`}>
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
                 {s.status}
               </span>
             </div>

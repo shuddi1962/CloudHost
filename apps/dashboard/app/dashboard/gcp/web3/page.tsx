@@ -5,12 +5,12 @@ export default function Web3Page() {
     {
       title: "Blockchain Node Engine",
       description: "Fully managed blockchain node hosting",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Blockchain RPC",
       description: "Enterprise-grade RPC for building on blockchain",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
   ];
 

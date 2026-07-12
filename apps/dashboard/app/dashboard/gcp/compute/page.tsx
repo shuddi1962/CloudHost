@@ -7,57 +7,57 @@ const services = [
     name: "Compute Engine",
     desc: "VMs, GPUs, TPUs, and disks for any workload",
     icon: "🖥️",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Google Kubernetes Engine",
     desc: "Managed Kubernetes and container orchestration",
     icon: "⎈",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "VMware Engine",
     desc: "VMware as a service on Google Cloud",
     icon: "🧩",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Batch",
     desc: "Jobs as a service for batch computing",
     icon: "📋",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "License Manager",
     desc: "Manage and track software license entitlements",
     icon: "🔑",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Workload Manager",
     desc: "Optimize workload performance and costs",
     icon: "📊",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Red Hat OpenShift",
     desc: "Enterprise Kubernetes platform by Red Hat",
     icon: "🔴",
-    status: "GA",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
   {
     name: "Cluster Director",
     desc: "Orchestrate and manage cluster deployments",
     icon: "🎯",
-    status: "Preview",
-    route: "#",
+    status: "Coming Soon",
+    route: "/dashboard/coming-soon",
   },
 ];
 
@@ -84,9 +84,7 @@ export default function GcpComputePage() {
               <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center text-white text-lg">
                 {s.icon}
               </div>
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                s.status === "GA" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-              }`}>
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
                 {s.status}
               </span>
             </div>

@@ -10,7 +10,7 @@ export default function WorkflowsPage() {
   const createWorkflow = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch("http://localhost:3001/api/workflows", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/workflows`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
@@ -30,7 +30,7 @@ export default function WorkflowsPage() {
   const toggleWorkflow = async (id: string, currentStatus: string) => {
     const token = localStorage.getItem("token");
     const action = currentStatus === "active" ? "deactivate" : "activate";
-    const res = await fetch(`http://localhost:3001/api/workflows/${id}/${action}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/workflows/${id}/${action}`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

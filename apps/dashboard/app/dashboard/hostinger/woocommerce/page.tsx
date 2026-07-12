@@ -29,7 +29,7 @@ export default function WooCommercePage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:3001/api/hostinger-services/woocommerce", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/woocommerce`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -40,7 +40,7 @@ export default function WooCommercePage() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch("http://localhost:3001/api/hostinger-services/woocommerce", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/woocommerce`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),
@@ -56,7 +56,7 @@ export default function WooCommercePage() {
   const sync = async (id: string) => {
     setSyncing(id);
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/hostinger-services/woocommerce/${id}/sync`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/woocommerce/${id}/sync`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

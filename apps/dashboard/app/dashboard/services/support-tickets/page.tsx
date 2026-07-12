@@ -38,7 +38,7 @@ export default function SupportTicketsPage() {
   const fetchTickets = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3001/api/marketing-suite/tickets", { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/tickets`, { headers });
       const data = await res.json();
       setTickets(data.tickets || []);
     } catch {} finally { setLoading(false); }
@@ -50,7 +50,7 @@ export default function SupportTicketsPage() {
     e.preventDefault();
     setSending(true);
     try {
-      await fetch("http://localhost:3001/api/marketing-suite/tickets", {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/tickets`, {
         method: "POST", headers,
         body: JSON.stringify({ subject, category, priority, message }),
       });
@@ -65,12 +65,12 @@ export default function SupportTicketsPage() {
     if (!reply.trim() || !selected) return;
     setSending(true);
     try {
-      await fetch(`http://localhost:3001/api/marketing-suite/tickets/${selected.id}/reply`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/tickets/${selected.id}/reply`, {
         method: "POST", headers,
         body: JSON.stringify({ message: reply.trim() }),
       });
       setReply("");
-      const res = await fetch(`http://localhost:3001/api/marketing-suite/tickets`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/tickets`, { headers });
       const data = await res.json();
       const updated = (data.tickets || []).find((t: Ticket) => t.id === selected.id);
       if (updated) setSelected(updated);
@@ -80,7 +80,7 @@ export default function SupportTicketsPage() {
   const closeTicket = async () => {
     if (!selected) return;
     try {
-      await fetch(`http://localhost:3001/api/marketing-suite/tickets/${selected.id}/close`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/tickets/${selected.id}/close`, {
         method: "POST", headers,
       });
       setSelected(null);

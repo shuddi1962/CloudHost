@@ -13,7 +13,7 @@ interface Protection {
   whitelist: string[]; blacklist: string[]; status: string;
 }
 
-const API = "http://localhost:3001/api/business-tools/anti-spam";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/business-tools/anti-spam`;
 
 export default function AntiSpamPage() {
   const [protections, setProtections] = useState<Protection[]>([]);

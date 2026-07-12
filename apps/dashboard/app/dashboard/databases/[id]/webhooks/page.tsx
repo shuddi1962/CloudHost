@@ -14,7 +14,7 @@ export default function WebhooksPage() {
 
   const fetchWebhooks = async () => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/webhooks/database/${params.id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/webhooks/database/${params.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -27,7 +27,7 @@ export default function WebhooksPage() {
   const createWebhook = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    await fetch("http://localhost:3001/api/webhooks", {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/webhooks`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ ...form, databaseId: params.id }),
@@ -39,7 +39,7 @@ export default function WebhooksPage() {
 
   const toggleWebhook = async (id: string) => {
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:3001/api/webhooks/${id}/toggle`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/webhooks/${id}/toggle`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -49,7 +49,7 @@ export default function WebhooksPage() {
   const viewLogs = async (id: string) => {
     setViewingLogs(id);
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/webhooks/${id}/logs`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/webhooks/${id}/logs`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -59,7 +59,7 @@ export default function WebhooksPage() {
   const deleteWebhook = async (id: string) => {
     if (!confirm("Delete this webhook?")) return;
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:3001/api/webhooks/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/webhooks/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

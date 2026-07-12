@@ -41,7 +41,7 @@ export default function AnalyticsPage() {
     async function fetchAnalytics() {
       try {
         const token = localStorage.getItem("token") || ""
-        const res = await fetch("http://localhost:3001/api/marketplace/analytics", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/analytics`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (!res.ok) throw new Error("Failed to fetch analytics")

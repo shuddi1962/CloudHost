@@ -135,7 +135,7 @@ export default function SellPage() {
               <input type="checkbox" id="terms" checked={form.terms} onChange={e => setForm({ ...form, terms: e.target.checked })}
                 className="mt-1" required />
               <label htmlFor="terms" className="text-sm text-gray-600">
-                I agree to the <a href="#" className="text-brand-600 hover:underline">Marketplace Seller Agreement</a> and <a href="#" className="text-brand-600 hover:underline">Partner Terms</a>
+                I agree to the <a href="/dashboard/coming-soon" className="text-brand-600 hover:underline">Marketplace Seller Agreement</a> and <a href="/dashboard/coming-soon" className="text-brand-600 hover:underline">Partner Terms</a>
               </label>
             </div>
             <button type="submit" className="btn-primary">Submit Application</button>

@@ -18,7 +18,7 @@ interface HistoryItem {
   id: string; domain: string; queryType: string; responseTime: number; queriedAt: string;
 }
 
-const API = "http://localhost:3001/api/business-tools/public-dns";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/business-tools/public-dns`;
 
 const queryTypes = ["A", "AAAA", "MX", "NS", "TXT", "CNAME", "SOA", "SRV", "CAA", "PTR"];
 

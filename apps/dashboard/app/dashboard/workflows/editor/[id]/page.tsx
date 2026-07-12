@@ -47,7 +47,7 @@ export default function WorkflowEditorPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:3001/api/workflows/${params.id}`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/workflows/${params.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     }).then(r => r.json()).then(data => {
       setWorkflow(data.workflow);
@@ -58,7 +58,7 @@ export default function WorkflowEditorPage() {
 
   const saveWorkflow = useCallback(async () => {
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:3001/api/workflows/${params.id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/workflows/${params.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ nodes, connections }),

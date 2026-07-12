@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const API = "http://localhost:3001/api/whmcs";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/whmcs`;
 
 const adminTabs = [
   { label: "Clients", href: "#", count: "1,284" },
@@ -223,7 +223,7 @@ export default function WhmcsAdminPage() {
               <p className="text-2xl font-bold text-white mt-1">{s.value}</p>
             </div>
             <div className="bg-white border border-t-0 border-gray-200 px-4 py-2 flex justify-end">
-              <Link href="#" className="text-[10px] text-[#1c3f66] hover:underline">View Details →</Link>
+              <Link href="/dashboard/coming-soon" className="text-[10px] text-[#1c3f66] hover:underline">View Details →</Link>
             </div>
           </div>
         ))}

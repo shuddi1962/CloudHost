@@ -33,7 +33,7 @@ export default function KnowledgebasePage() {
       const params = new URLSearchParams();
       if (category) params.set("category", category);
       if (search) params.set("search", search);
-      const res = await fetch(`http://localhost:3001/api/marketing-suite/knowledgebase?${params}`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/knowledgebase?${params}`, { headers });
       const data = await res.json();
       const list = data.articles || data.guides || [];
       setArticles(list);
@@ -47,7 +47,7 @@ export default function KnowledgebasePage() {
   const viewArticle = async (article: Article) => {
     setSelected(null);
     try {
-      const res = await fetch(`http://localhost:3001/api/marketing-suite/knowledgebase/${article.slug}`, { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/knowledgebase/${article.slug}`, { headers });
       const data = await res.json();
       setSelected(data.article || data);
     } catch { setSelected(article); }
@@ -57,7 +57,7 @@ export default function KnowledgebasePage() {
   const vote = async (helpful: boolean) => {
     if (!selected || voted) return;
     try {
-      await fetch(`http://localhost:3001/api/marketing-suite/knowledgebase/${selected.id}/vote`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/knowledgebase/${selected.id}/vote`, {
         method: "POST", headers,
         body: JSON.stringify({ helpful }),
       });

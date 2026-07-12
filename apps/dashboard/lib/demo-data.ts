@@ -3,7 +3,8 @@ export function setupDemoApi() {
   const orig = window.fetch.bind(window);
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-    if (!url.includes("localhost:3001")) return orig(input, init);
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    if (!url.includes(apiBase)) return orig(input, init);
     const method = init?.method || "GET";
     const body = init?.body ? JSON.parse(init.body as string) : undefined;
     const handler = findHandler(url, method, body);

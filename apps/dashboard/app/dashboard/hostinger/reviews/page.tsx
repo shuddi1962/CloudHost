@@ -20,7 +20,7 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:3001/api/hostinger-services/reviews", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/reviews`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())

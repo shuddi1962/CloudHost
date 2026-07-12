@@ -82,7 +82,7 @@ export default function AppCatalogPage() {
     setTimeout(async () => {
       const token = localStorage.getItem("token");
       try {
-        await fetch("http://localhost:3001/api/wordpress/", {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/wordpress/`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({

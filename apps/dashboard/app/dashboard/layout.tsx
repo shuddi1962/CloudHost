@@ -65,7 +65,7 @@ const servicesNav = [
   { href: "/dashboard/services/abuse-report", label: "Report Abuse", icon: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" },
 ];
 
-const hostingerNav = [
+const hostingerNavCore = [
   { href: "/dashboard/hostinger/n8n", label: "Self-hosted n8n", icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" },
   { href: "/dashboard/hostinger/cloud-hosting", label: "Cloud Hosting", icon: "M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" },
   { href: "/dashboard/hostinger/woocommerce", label: "WooCommerce", icon: "M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" },
@@ -80,6 +80,8 @@ const hostingerNav = [
   { href: "/dashboard/hostinger/newsletter", label: "AI Newsletter", icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
   { href: "/dashboard/hostinger/horizons", label: "Horizons AI", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
   { href: "/dashboard/hostinger/api", label: "Hostinger API", icon: "M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
+];
+const hostingerNavMore = [
   { href: "/dashboard/hostinger/reviews", label: "Reviews", icon: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" },
   { href: "/dashboard/hostinger/status", label: "System Status", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
   { href: "/dashboard/hostinger/roadmap", label: "Roadmap", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" },
@@ -104,10 +106,12 @@ const gcpNav = [
   { href: "/dashboard/gcp", label: "GCP Overview", icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" },
   { href: "/dashboard/gcp/compute", label: "Compute", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
   { href: "/dashboard/gcp/storage", label: "Storage", icon: "M4 7v10c2.21 0 4-1.79 4-4V7c0-2.21-1.79-4-4-4z" },
+  { href: "/dashboard/gcp/ai", label: "AI / ML", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
+];
+const gcpNavMore = [
   { href: "/dashboard/gcp/databases", label: "Databases", icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4" },
   { href: "/dashboard/gcp/networking", label: "Networking", icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9" },
   { href: "/dashboard/gcp/analytics", label: "Analytics", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10" },
-  { href: "/dashboard/gcp/ai", label: "AI / ML", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
   { href: "/dashboard/gcp/security", label: "Security", icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" },
   { href: "/dashboard/gcp/iam", label: "IAM & Admin", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857" },
   { href: "/dashboard/gcp/observability", label: "Observability", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
@@ -138,9 +142,7 @@ const marketplaceNav = [
   { href: "/dashboard/marketplace/sell", label: "Sell Products", icon: "M12 6v6m0 0v6m0-6h6m-6 0H6" },
 ];
 
-const adminMarketplaceNav = [
-  { href: "/dashboard/admin/marketplace", label: "Marketplace Queue", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" },
-];
+
 
 const whmcsNav = [
   { href: "/dashboard/whmcs", label: "Client Portal", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
@@ -161,29 +163,21 @@ const toolsNav = [
 ];
 
 const adminNav = [
-  { href: "/dashboard/admin", label: "Admin Panel", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" },
-  { href: "/dashboard/admin/users", label: "Users", icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197" },
-  { href: "/dashboard/admin/servers", label: "Servers", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
-  { href: "/dashboard/admin/billing", label: "Billing", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
-  { href: "/dashboard/admin/integrations", label: "Integrations", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
-  { href: "/dashboard/admin/features", label: "Feature Flags", icon: "M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" },
-];
-
-const superAdminNav = [
-  { href: "/dashboard/admin", label: "Platform Control", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" },
+  { href: "/dashboard/admin", label: "Admin Overview", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" },
   { href: "/dashboard/admin/users", label: "User Management", icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197" },
   { href: "/dashboard/admin/servers", label: "Infrastructure", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
   { href: "/dashboard/admin/billing", label: "Billing & Plans", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
   { href: "/dashboard/admin/integrations", label: "Integrations", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
   { href: "/dashboard/admin/features", label: "Feature Flags", icon: "M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" },
-  { href: "/dashboard/admin", label: "Audit Logs", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
-  { href: "/dashboard/admin", label: "System Config", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" },
+  { href: "/dashboard/admin/marketplace", label: "Marketplace Queue", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" },
 ];
+
+const superAdminNav = adminNav;
 
 function renderNavGroup(title: string, items: typeof topNav, pathname: string) {
   return (
     <div className="mb-4">
-      <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{title}</p>
+      {title && <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{title}</p>}
       {items.map((item) => {
         const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
         return (
@@ -204,6 +198,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   setupDemoApi();
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showGcpMore, setShowGcpMore] = useState(false);
+  const [showHostingerMore, setShowHostingerMore] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -249,9 +245,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-            {user.isSuperAdmin && renderNavGroup("Super Admin", superAdminNav, pathname)}
-            {user.isAdmin && renderNavGroup("Admin", adminNav, pathname)}
-            {(user.isAdmin || user.isSuperAdmin) && renderNavGroup("Marketplace Admin", adminMarketplaceNav, pathname)}
+            {(user.isAdmin || user.isSuperAdmin) && renderNavGroup("Admin", adminNav, pathname)}
             {renderNavGroup("General", topNav, pathname)}
             {renderNavGroup("Hosting", hostingNav, pathname)}
             {renderNavGroup("Databases", databaseNav, pathname)}
@@ -260,12 +254,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {renderNavGroup("Automation", automationNav, pathname)}
             {renderNavGroup("Tools", toolsNav, pathname)}
             {renderNavGroup("GCP", gcpNav, pathname)}
+            {showGcpMore && renderNavGroup("", gcpNavMore, pathname)}
+            <button onClick={() => setShowGcpMore(!showGcpMore)} className="w-full text-left text-[11px] text-gray-400 hover:text-gray-600 px-3 py-1 font-medium transition-colors">
+              {showGcpMore ? "− Hide less common services" : `+ Show all ${gcpNavMore.length} Google Cloud services`}
+            </button>
             {renderNavGroup("Cloudflare", cloudflareNav, pathname)}
             {renderNavGroup("Supabase", supabaseNav, pathname)}
             {renderNavGroup("Marketplace", marketplaceNav, pathname)}
             {renderNavGroup("Services", servicesNav, pathname)}
             {renderNavGroup("WHMCS Portal", whmcsNav, pathname)}
-            {renderNavGroup("Hostinger", hostingerNav, pathname)}
+            {renderNavGroup("Hostinger", hostingerNavCore, pathname)}
+            {showHostingerMore && renderNavGroup("", hostingerNavMore, pathname)}
+            <button onClick={() => setShowHostingerMore(!showHostingerMore)} className="w-full text-left text-[11px] text-gray-400 hover:text-gray-600 px-3 py-1 font-medium transition-colors">
+              {showHostingerMore ? "− Show less" : `+ Show ${hostingerNavMore.length} more`}
+            </button>
           </nav>
 
           <div className="p-4 border-t border-gray-200">

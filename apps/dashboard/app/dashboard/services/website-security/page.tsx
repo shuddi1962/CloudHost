@@ -16,7 +16,7 @@ interface Finding {
   id: string; severity: string; description: string; path: string; recommendation: string; fixed: boolean;
 }
 
-const API = "http://localhost:3001/api/business-tools/website-security";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/business-tools/website-security`;
 
 export default function WebsiteSecurityPage() {
   const [sites, setSites] = useState<Site[]>([]);

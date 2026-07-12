@@ -237,7 +237,7 @@ export default function CreateDeploymentPage() {
         fd.append("phpVersion", buildSettings.phpVersion);
         fd.append("environment", JSON.stringify(Object.fromEntries(envVars.filter(e => e.key).map(e => [e.key, e.value]))));
 
-        const res = await fetch("http://localhost:3001/api/deployments/upload", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/deployments/upload`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
           body: fd,
@@ -251,7 +251,7 @@ export default function CreateDeploymentPage() {
           return;
         }
       } else if (activeTab === "quick-install") {
-        const res = await fetch("http://localhost:3001/api/deployments", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/deployments`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({
@@ -278,7 +278,7 @@ export default function CreateDeploymentPage() {
           return;
         }
       } else {
-        const res = await fetch("http://localhost:3001/api/deployments", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/deployments`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({
@@ -311,7 +311,7 @@ export default function CreateDeploymentPage() {
       }
 
       if (deploymentId) {
-        await fetch(`http://localhost:3001/api/deployments/${deploymentId}/deploy`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/deployments/${deploymentId}/deploy`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         }).catch(() => {});

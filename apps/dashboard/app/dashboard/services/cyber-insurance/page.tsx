@@ -19,7 +19,7 @@ interface Claim {
   id: string; type: string; description: string; amount: number; status: string; incidentDate: string; createdAt: string;
 }
 
-const API = "http://localhost:3001/api/business-tools/insurance";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/business-tools/insurance`;
 
 const plans: InsurancePlan[] = [
   { id: "basic", name: "Basic", coverage: 500000, premium: 99, features: ["Data breach response", "Legal consultation", "Public relations support", "$500K coverage"], popular: false },

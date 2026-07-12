@@ -5,67 +5,67 @@ export default function IamPage() {
     {
       title: "IAM",
       description: "Manage access control for cloud resources",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Service Accounts",
       description: "Server-to-server auth",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Groups",
       description: "Manage groups of users",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Privileged Access Manager",
       description: "Just-in-time privileged access",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Roles",
       description: "Predefined and custom IAM roles",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Workload Identity Federation",
       description: "Access GCP from non-GCP workloads",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Workforce Identity Federation",
       description: "Access GCP with external identity providers",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Principal Access Boundary",
       description: "Fine-grained access boundaries",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Managed Workload Identities",
       description: "",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Organization Policies",
       description: "Programmatic constraint enforcement",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Policy Analyzer",
       description: "Security insights preview — analyze access policies",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Policy Troubleshooter",
       description: "Diagnose access issues",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Identity-Aware Proxy (IAP)",
       description: "Control access to cloud apps",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
   ];
 

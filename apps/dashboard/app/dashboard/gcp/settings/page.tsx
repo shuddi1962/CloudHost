@@ -6,47 +6,47 @@ export default function SettingsPage() {
       title: "Resource Management",
       description:
         "Organization Policies, Asset Inventory, Settings, Labels, Tags",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Manage Resources",
       description: "Create a Project",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Diagnostic Tools",
       description: "",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Security Insights preview",
       description: "",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Cloud Administration",
       description: "",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Identity & Organization",
       description: "",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Support",
       description: "Free to paid packages",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Help & Documentation",
       description: "",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
     {
       title: "Service Health",
       description: "",
-      href: "#",
+      href: "/dashboard/coming-soon",
     },
   ];
 

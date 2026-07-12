@@ -12,7 +12,7 @@ export default function FTPAccountsPage() {
   const fetchAccounts = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("http://localhost:3001/api/hosting/account/00000000-0000-0000-0000-000000000000/ftp", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hosting/account/00000000-0000-0000-0000-000000000000/ftp`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -26,7 +26,7 @@ export default function FTPAccountsPage() {
   const createAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    await fetch("http://localhost:3001/api/hosting/ftp", {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hosting/ftp`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ ...form, hostingAccountId: "00000000-0000-0000-0000-000000000000" }),
@@ -38,7 +38,7 @@ export default function FTPAccountsPage() {
 
   const resetPassword = async (id: string) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/hosting/ftp/${id}/reset-password`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hosting/ftp/${id}/reset-password`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -50,7 +50,7 @@ export default function FTPAccountsPage() {
   const deleteAccount = async (id: string) => {
     if (!confirm("Delete this FTP account?")) return;
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:3001/api/hosting/ftp/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hosting/ftp/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     fetchAccounts();
   };
 

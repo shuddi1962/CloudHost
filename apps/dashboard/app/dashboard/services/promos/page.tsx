@@ -25,7 +25,7 @@ export default function PromosPage() {
   const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/marketing-suite/promos", { headers })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/promos`, { headers })
       .then(r => r.json())
       .then(data => setPromos(data.promos || data.coupons || []))
       .catch(() => setPromos([]))
@@ -39,7 +39,7 @@ export default function PromosPage() {
     setError("");
     setRedeemResult(null);
     try {
-      const res = await fetch("http://localhost:3001/api/marketing-suite/promos/redeem", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/promos/redeem`, {
         method: "POST", headers,
         body: JSON.stringify({ code: code.trim() }),
       });

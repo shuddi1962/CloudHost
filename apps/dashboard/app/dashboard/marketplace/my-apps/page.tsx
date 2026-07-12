@@ -147,7 +147,7 @@ export default function MyAppsPage() {
           </div>
           <div>
             <h3 className="font-semibold text-sm">Seller Resources</h3>
-            <p className="text-xs text-gray-600 mt-1">Visit our <a href="#" className="text-brand-600 hover:underline">Seller Guide</a> to learn about best practices, pricing strategies, and how to optimize your product listing for maximum visibility.</p>
+            <p className="text-xs text-gray-600 mt-1">Visit our <a href="/dashboard/coming-soon" className="text-brand-600 hover:underline">Seller Guide</a> to learn about best practices, pricing strategies, and how to optimize your product listing for maximum visibility.</p>
           </div>
         </div>
       </div>

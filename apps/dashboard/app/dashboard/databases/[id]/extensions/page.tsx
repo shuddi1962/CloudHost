@@ -15,8 +15,8 @@ export default function ExtensionsPage() {
     const headers = { Authorization: `Bearer ${token}` };
     try {
       const [extRes, availRes] = await Promise.all([
-        fetch(`http://localhost:3001/api/extensions/database/${params.id}`, { headers }),
-        fetch("http://localhost:3001/api/extensions/available", { headers }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/extensions/database/${params.id}`, { headers }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/extensions/available`, { headers }),
       ]);
       const extData = await extRes.json();
       const availData = await availRes.json();
@@ -32,7 +32,7 @@ export default function ExtensionsPage() {
 
   const installExtension = async (name: string) => {
     const token = localStorage.getItem("token");
-    await fetch("http://localhost:3001/api/extensions/install", {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/extensions/install`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ databaseId: params.id, name }),
@@ -43,7 +43,7 @@ export default function ExtensionsPage() {
   const uninstallExtension = async (id: string) => {
     if (!confirm("Uninstall this extension?")) return;
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:3001/api/extensions/${id}/uninstall`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/extensions/${id}/uninstall`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

@@ -53,13 +53,13 @@ function SeoTab({ headers }: { headers: Record<string, string> }) {
     if (!domain.trim()) return;
     setLoading(true);
     try {
-      let res = await fetch(`http://localhost:3001/api/marketing-suite/relate/seo`, { headers });
+      let res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/relate/seo`, { headers });
       let d = await res.json();
       const sites = d.sites || d.seoData || [];
       const existing = sites.find((s: any) => s.domain === domain.trim());
       if (existing) { setData(existing); setLoading(false); return; }
 
-      res = await fetch(`http://localhost:3001/api/marketing-suite/relate/seo/analyze`, {
+      res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/relate/seo/analyze`, {
         method: "POST", headers,
         body: JSON.stringify({ domain: domain.trim() }),
       });
@@ -113,7 +113,7 @@ function SocialTab({ headers }: { headers: Record<string, string> }) {
     if (!handle.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3001/api/marketing-suite/relate/social", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/relate/social`, {
         method: "POST", headers,
         body: JSON.stringify({ platform, handle: handle.trim() }),
       });
@@ -153,7 +153,7 @@ function ReviewsTab({ headers }: { headers: Record<string, string> }) {
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/api/marketing-suite/relate/reviews?platform=${platform}`, { headers })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/relate/reviews?platform=${platform}`, { headers })
       .then(r => r.json())
       .then(d => setData(d.reviewsData || d))
       .catch(() => {});
@@ -191,7 +191,7 @@ function AdsTab({ headers }: { headers: Record<string, string> }) {
 
   const fetchCampaigns = async () => {
     try {
-      const res = await fetch("http://localhost:3001/api/marketing-suite/relate/ads", { headers });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/relate/ads`, { headers });
       const d = await res.json();
       setCampaigns(d.campaigns || []);
     } catch {}
@@ -203,7 +203,7 @@ function AdsTab({ headers }: { headers: Record<string, string> }) {
     e.preventDefault();
     if (!name.trim()) return;
     try {
-      await fetch("http://localhost:3001/api/marketing-suite/relate/ads", {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/relate/ads`, {
         method: "POST", headers,
         body: JSON.stringify({ name, platform, budget: Number(budget), audience }),
       });
@@ -215,7 +215,7 @@ function AdsTab({ headers }: { headers: Record<string, string> }) {
 
   const launchCampaign = async (id: string) => {
     try {
-      await fetch(`http://localhost:3001/api/marketing-suite/relate/ads/${id}/launch`, { method: "POST", headers });
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/relate/ads/${id}/launch`, { method: "POST", headers });
       await fetchCampaigns();
     } catch {}
   };
@@ -277,7 +277,7 @@ function LocalTab({ headers }: { headers: Record<string, string> }) {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch("http://localhost:3001/api/marketing-suite/relate/local", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/relate/local`, {
         method: "POST", headers,
         body: JSON.stringify({ businessName, address, phone }),
       });
@@ -320,7 +320,7 @@ function BrandTab({ headers }: { headers: Record<string, string> }) {
     if (!brand.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3001/api/marketing-suite/relate/brand", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketing-suite/relate/brand`, {
         method: "POST", headers,
         body: JSON.stringify({ brand: brand.trim() }),
       });

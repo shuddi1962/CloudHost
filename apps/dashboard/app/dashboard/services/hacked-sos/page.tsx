@@ -13,7 +13,7 @@ interface SosCase {
   backupDate: string | null; backupSize: string | null;
 }
 
-const API = "http://localhost:3001/api/business-tools/hacked-sos";
+const API = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/business-tools/hacked-sos`;
 
 export default function HackedSosPage() {
   const [cases, setCases] = useState<SosCase[]>([]);

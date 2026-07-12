@@ -26,7 +26,7 @@ export default function EcommerceBuilderPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:3001/api/hostinger-services/ecommerce-builder", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/ecommerce-builder`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -37,7 +37,7 @@ export default function EcommerceBuilderPage() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch("http://localhost:3001/api/hostinger-services/ecommerce-builder", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/ecommerce-builder`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),
@@ -53,7 +53,7 @@ export default function EcommerceBuilderPage() {
   const publish = async (id: string) => {
     setPublishing(id);
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/hostinger-services/ecommerce-builder/${id}/publish`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/ecommerce-builder/${id}/publish`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

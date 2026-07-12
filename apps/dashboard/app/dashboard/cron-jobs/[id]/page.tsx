@@ -48,7 +48,7 @@ export default function CronJobDetailPage() {
     const fetchJob = async () => {
       const token = localStorage.getItem("token");
       try {
-        const res = await fetch(`http://localhost:3001/api/cron-jobs/${params.id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/cron-jobs/${params.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -65,7 +65,7 @@ export default function CronJobDetailPage() {
     setRunning(true);
     const token = localStorage.getItem("token");
     try {
-      await fetch(`http://localhost:3001/api/cron-jobs/${params.id}/run`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/cron-jobs/${params.id}/run`, {
         method: "POST", headers: { Authorization: `Bearer ${token}` },
       });
     } catch {}

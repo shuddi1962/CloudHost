@@ -45,7 +45,7 @@ export default function RoadmapPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:3001/api/hostinger-services/roadmap", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/roadmap`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -55,7 +55,7 @@ export default function RoadmapPage() {
 
   const upvote = async (id: string) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3001/api/hostinger-services/roadmap/${id}/vote`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/hostinger-services/roadmap/${id}/vote`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

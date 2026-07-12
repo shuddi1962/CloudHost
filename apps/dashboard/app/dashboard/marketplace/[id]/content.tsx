@@ -32,12 +32,12 @@ export default function ProductDetail() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
-    fetch(`http://localhost:3001/api/marketplace/apps/${id}`, { headers })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/apps/${id}`, { headers })
       .then(r => r.json())
       .then(data => setApp(data.app || null))
       .catch(() => setApp(null))
       .finally(() => setLoading(false));
-    fetch(`http://localhost:3001/api/marketplace/reviews/${id}`, { headers })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/reviews/${id}`, { headers })
       .then(r => r.json())
       .then(data => setReviews(data.reviews || []))
       .catch(() => {});
@@ -46,7 +46,7 @@ export default function ProductDetail() {
   const submitReview = async () => {
     if (!newRating || !reviewText) return;
     const token = localStorage.getItem("token");
-    const res = await fetch("http://localhost:3001/api/marketplace/reviews", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/marketplace/reviews`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ appId: id, appName: app?.name, author: "You", rating: newRating, title: reviewTitle, text: reviewText }),
