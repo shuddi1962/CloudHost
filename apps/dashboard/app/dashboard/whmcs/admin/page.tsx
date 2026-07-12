@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+const API = "http://localhost:3001/api/whmcs";
+
 const adminTabs = [
   { label: "Clients", href: "#", count: "1,284" },
   { label: "Orders", href: "#", count: "47" },
@@ -13,7 +15,7 @@ const adminTabs = [
   { label: "Addons", href: "#", count: "3" },
 ];
 
-const statCards = [
+const defaultStatCards = [
   { label: "Pending Orders", value: "23", bg: "bg-[#e08a1e]", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" },
   { label: "Tickets Waiting", value: "12", bg: "bg-[#e6427a]", icon: "M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" },
   { label: "Pending Cancellations", value: "5", bg: "bg-[#e2372f]", icon: "M6 18L18 6M6 6l12 12" },
@@ -28,21 +30,21 @@ const automationTasks = [
   { name: "Email Queue", lastRun: "3 hours ago", status: "Pending", statusColor: "text-gray-400" },
 ];
 
-const supportFeed = [
+const defaultSupportFeed = [
   { ticket: "#TKT-2841", subject: "Cannot access cPanel", status: "Open", statusColor: "text-[#e6427a]" },
   { ticket: "#TKT-2840", subject: "SSL renewal failed", status: "Open", statusColor: "text-[#e6427a]" },
   { ticket: "#TKT-2839", subject: "Email setup help", status: "Replied", statusColor: "text-[#e08a1e]" },
   { ticket: "#TKT-2838", subject: "Migration request", status: "Closed", statusColor: "text-[#3cb878]" },
 ];
 
-const recentInvoices = [
+const defaultInvoices = [
   { id: "INV-2024", client: "John Customer", amount: "$24.99", status: "Unpaid", statusColor: "text-red-600 bg-red-50" },
   { id: "INV-2023", client: "Sarah Johnson", amount: "$49.99", status: "Paid", statusColor: "text-[#3cb878] bg-green-50" },
   { id: "INV-2022", client: "Mike Chen", amount: "$12.99", status: "Paid", statusColor: "text-[#3cb878] bg-green-50" },
   { id: "INV-2021", client: "Emily Davis", amount: "$89.99", status: "Cancelled", statusColor: "text-gray-500 bg-gray-50" },
 ];
 
-const networkStatus = [
+const defaultNetworkStatus = [
   { name: "Web Server", status: "Online", color: "bg-[#3cb878]" },
   { name: "Database Cluster", status: "Online", color: "bg-[#3cb878]" },
   { name: "Email Server", status: "Degraded", color: "bg-[#e08a1e]" },
@@ -50,19 +52,19 @@ const networkStatus = [
   { name: "CDN", status: "Online", color: "bg-[#3cb878]" },
 ];
 
-const toDoItems = [
+const defaultToDoItems = [
   { task: "Review pending migrations", priority: "High", priorityColor: "text-[#e2372f]" },
   { task: "Update pricing for VPS plans", priority: "Medium", priorityColor: "text-[#e08a1e]" },
   { task: "Check server disk usage", priority: "Normal", priorityColor: "text-[#3ea6c9]" },
 ];
 
-const stripeBalance = {
+const defaultStripeBalance = {
   available: "$45,230.00",
   pending: "$12,450.00",
   payoutsToday: "$3,200.00",
 };
 
-const clientActivity = [
+const defaultClientActivity = [
   { name: "John Customer", action: "Paid invoice INV-2023", time: "5 min ago" },
   { name: "Sarah Johnson", action: "Opened support ticket", time: "12 min ago" },
   { name: "Mike Chen", action: "Registered new domain", time: "1 hour ago" },
@@ -78,14 +80,87 @@ const marketConnect = [
   { name: "Google Analytics", icon: "GA", color: "bg-yellow-500", desc: "Website analytics & insights" },
 ];
 
+const defaultAnalyticsData = {
+  sessions: 2841,
+  pageViews: 12450,
+  bounceRate: "32.4%",
+  avgSessionDuration: "4m 12s",
+  realTimeUsers: 47,
+  topCountries: [
+    { country: "United States", sessions: 1240 },
+    { country: "United Kingdom", sessions: 384 },
+    { country: "Canada", sessions: 291 },
+    { country: "Australia", sessions: 187 },
+    { country: "Germany", sessions: 156 },
+  ],
+  topBrowsers: [
+    { browser: "Chrome", percentage: 58 },
+    { browser: "Safari", percentage: 22 },
+    { browser: "Firefox", percentage: 11 },
+    { browser: "Edge", percentage: 7 },
+    { browser: "Other", percentage: 2 },
+  ],
+  topPages: [
+    { page: "/", views: 8450 },
+    { page: "/hosting", views: 3210 },
+    { page: "/domains", views: 1890 },
+    { page: "/support", views: 1450 },
+    { page: "/cart", views: 980 },
+  ],
+  topSources: [
+    { source: "Google Organic", sessions: 980 },
+    { source: "Direct", sessions: 654 },
+    { source: "Twitter", sessions: 321 },
+    { source: "Facebook", sessions: 245 },
+    { source: "Referral", sessions: 187 },
+  ],
+};
+
+const defaultRevenueByCategory = [
+  { category: "Shared Hosting", revenue: 45230, percentage: 42 },
+  { category: "VPS Servers", revenue: 28100, percentage: 26 },
+  { category: "Domain Names", revenue: 12450, percentage: 12 },
+  { category: "Other Products", revenue: 21500, percentage: 20 },
+];
+
 export default function WhmcsAdminPage() {
   const [user, setUser] = useState<any>(null);
   const [chartPeriod, setChartPeriod] = useState<"today" | "30d" | "1yr">("30d");
   const [activeTab, setActiveTab] = useState("");
+  const [analyticsTab, setAnalyticsTab] = useState<"overview" | "countries" | "browsers" | "sources">("overview");
+
+  const [statCards, setStatCards] = useState(defaultStatCards);
+  const [supportFeed, setSupportFeed] = useState(defaultSupportFeed);
+  const [recentInvoices, setRecentInvoices] = useState(defaultInvoices);
+  const [networkStatus, setNetworkStatus] = useState(defaultNetworkStatus);
+  const [toDoItems, setToDoItems] = useState(defaultToDoItems);
+  const [stripeBalance, setStripeBalance] = useState(defaultStripeBalance);
+  const [clientActivity, setClientActivity] = useState(defaultClientActivity);
+  const [analyticsData, setAnalyticsData] = useState(defaultAnalyticsData);
+  const [revenueByCategory, setRevenueByCategory] = useState(defaultRevenueByCategory);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const u = localStorage.getItem("user");
     if (u) setUser(JSON.parse(u));
+
+    fetch(`${API}/dashboard`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.admin) {
+          const a = data.admin;
+          setStatCards([
+            { label: "Pending Orders", value: String(a.pendingOrders ?? 23), bg: "bg-[#e08a1e]", icon: defaultStatCards[0].icon },
+            { label: "Tickets Waiting", value: String(a.ticketsWaiting ?? 12), bg: "bg-[#e6427a]", icon: defaultStatCards[1].icon },
+            { label: "Pending Cancellations", value: String(a.pendingCancellations ?? 5), bg: "bg-[#e2372f]", icon: defaultStatCards[2].icon },
+            { label: "Pending Module Actions", value: String(a.pendingModuleActions ?? 8), bg: "bg-[#3ea6c9]", icon: defaultStatCards[3].icon },
+          ]);
+          if (a.revenueByCategory) setRevenueByCategory(a.revenueByCategory);
+          if (a.analytics) setAnalyticsData(a.analytics);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const chartData = chartPeriod === "today"
@@ -96,6 +171,7 @@ export default function WhmcsAdminPage() {
 
   const maxOrders = Math.max(...chartData.orders, 1);
   const maxIncome = Math.max(...chartData.income, 1);
+  const maxRevenue = Math.max(...revenueByCategory.map((r: any) => r.revenue), 1);
 
   return (
     <div className="space-y-4 text-[13px]">
@@ -113,6 +189,10 @@ export default function WhmcsAdminPage() {
               {tab.count && <span className="bg-white/15 text-[10px] px-1.5 py-0.5 rounded">{tab.count}</span>}
             </button>
           ))}
+          <Link href="/dashboard/whmcs/admin/whm" className="px-4 py-2.5 hover:bg-[#2b5a8a]/50 transition-colors text-white flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>
+            WHM
+          </Link>
           <div className="ml-auto px-4 py-2.5 text-white/60 text-[10px]">
             WHMCS Admin · v8.11
           </div>
@@ -243,6 +323,147 @@ export default function WhmcsAdminPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Google Analytics Widget */}
+          <div className="bg-white rounded-lg border border-gray-200">
+            <div className="border-b border-gray-100 px-5 py-3 flex items-center justify-between">
+              <h2 className="font-semibold text-sm text-[#1c3f66]">Google Analytics</h2>
+              <div className="flex items-center gap-1 bg-gray-100 rounded p-0.5">
+                {(["overview", "countries", "browsers", "sources"] as const).map((t) => (
+                  <button key={t} onClick={() => setAnalyticsTab(t)}
+                    className={`text-[10px] px-2 py-1 rounded font-medium transition-colors ${analyticsTab === t ? "bg-white shadow-sm text-[#1c3f66]" : "text-gray-500 hover:text-gray-700"}`}>
+                    {t === "overview" ? "Overview" : t === "countries" ? "Countries" : t === "browsers" ? "Browsers" : "Sources"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="p-5">
+              {analyticsTab === "overview" && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-[#1c3f66]">{analyticsData.sessions.toLocaleString()}</p>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Sessions</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-[#1c3f66]">{analyticsData.pageViews.toLocaleString()}</p>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Page Views</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-[#e6427a]">{analyticsData.bounceRate}</p>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Bounce Rate</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-[#3cb878]">{analyticsData.avgSessionDuration}</p>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Avg. Session</p>
+                  </div>
+                  <div className="col-span-2 md:col-span-4 mt-2 flex items-center gap-2 bg-yellow-50 rounded px-3 py-2">
+                    <span className="w-2 h-2 rounded-full bg-[#e08a1e] animate-pulse" />
+                    <span className="text-xs text-gray-600"><strong>{analyticsData.realTimeUsers}</strong> active users right now</span>
+                  </div>
+                </div>
+              )}
+              {analyticsTab === "countries" && (
+                <div className="space-y-2">
+                  {analyticsData.topCountries.map((c) => (
+                    <div key={c.country} className="flex items-center justify-between">
+                      <span className="text-xs text-gray-700">{c.country}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-32 bg-gray-100 rounded-full h-1.5">
+                          <div className="bg-[#1c3f66] rounded-full h-1.5" style={{ width: `${(c.sessions / analyticsData.topCountries[0].sessions) * 100}%` }} />
+                        </div>
+                        <span className="text-xs font-medium text-gray-600 w-12 text-right">{c.sessions.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {analyticsTab === "browsers" && (
+                <div className="space-y-2">
+                  {analyticsData.topBrowsers.map((b) => (
+                    <div key={b.browser} className="flex items-center justify-between">
+                      <span className="text-xs text-gray-700">{b.browser}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-32 bg-gray-100 rounded-full h-1.5">
+                          <div className="bg-[#3ea6c9] rounded-full h-1.5" style={{ width: `${b.percentage}%` }} />
+                        </div>
+                        <span className="text-xs font-medium text-gray-600 w-8 text-right">{b.percentage}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {analyticsTab === "sources" && (
+                <div className="space-y-2">
+                  {analyticsData.topSources.map((s) => (
+                    <div key={s.source} className="flex items-center justify-between">
+                      <span className="text-xs text-gray-700">{s.source}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-32 bg-gray-100 rounded-full h-1.5">
+                          <div className="bg-[#3cb878] rounded-full h-1.5" style={{ width: `${(s.sessions / analyticsData.topSources[0].sessions) * 100}%` }} />
+                        </div>
+                        <span className="text-xs font-medium text-gray-600 w-12 text-right">{s.sessions.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Revenue by Category */}
+          <div className="bg-white rounded-lg border border-gray-200">
+            <div className="border-b border-gray-100 px-5 py-3 flex items-center justify-between">
+              <h2 className="font-semibold text-sm text-[#1c3f66]">Revenue by Category</h2>
+              <Link href="/dashboard/admin/billing" className="text-xs text-[#1c3f66] hover:underline font-medium">View Full Report</Link>
+            </div>
+            <div className="p-5">
+              <div className="flex items-center justify-center gap-6">
+                {/* Donut Chart */}
+                <div className="relative w-32 h-32 flex-shrink-0">
+                  <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                    {revenueByCategory.reduce((acc: { offset: number; elements: any[] }, cat, i) => {
+                      const colors = ["#1c3f66", "#3cb878", "#e08a1e", "#e6427a"];
+                      const circumference = 2 * Math.PI * 14;
+                      const strokeDasharray = `${(cat.percentage / 100) * circumference} ${circumference}`;
+                      acc.elements.push(
+                        <circle key={cat.category} cx="18" cy="18" r="14" fill="none"
+                          stroke={colors[i]} strokeWidth="3.5"
+                          strokeDasharray={strokeDasharray}
+                          strokeDashoffset={-acc.offset}
+                          className="transition-all duration-500"
+                        />
+                      );
+                      acc.offset += (cat.percentage / 100) * circumference;
+                      return acc;
+                    }, { offset: 0, elements: [] }).elements}
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-bold text-[#1c3f66]">
+                      ${revenueByCategory.reduce((s, c) => s + c.revenue, 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+                {/* Legend */}
+                <div className="space-y-2 flex-1">
+                  {revenueByCategory.map((cat, i) => {
+                    const colors = ["#1c3f66", "#3cb878", "#e08a1e", "#e6427a"];
+                    return (
+                      <div key={cat.category} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors[i] }} />
+                          <span className="text-xs text-gray-600">{cat.category}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs font-semibold text-gray-800">${cat.revenue.toLocaleString()}</span>
+                          <span className="text-[10px] text-gray-400 ml-1">({cat.percentage}%)</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

@@ -3,34 +3,17 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const statCards = [
+const API = "http://localhost:3001/api/whmcs";
+
+const defaultStatCards = [
   { label: "Services", value: "4", href: "/dashboard/projects", borderColor: "border-l-[#3cb878]", icon: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" },
   { label: "Domains", value: "3", href: "/dashboard/domains", borderColor: "border-l-[#e08a1e]", icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" },
   { label: "Tickets", value: "2", href: "/dashboard/services/support-tickets", borderColor: "border-l-[#e6427a]", icon: "M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" },
   { label: "Invoices", value: "1", href: "/dashboard/billing", borderColor: "border-l-[#e2372f]", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
 ];
 
-const services = [
-  { name: "Business Hosting", plan: "Business", domain: "acme.com", status: "Active", nextDue: "Aug 15, 2026", amount: "$24.99/mo" },
-  { name: "cPanel License", plan: "Pro", domain: "cpanel.acme.com", status: "Active", nextDue: "Aug 20, 2026", amount: "$15.99/mo" },
-  { name: "SSL Certificate", plan: "PositiveSSL", domain: "acme.com", status: "Active", nextDue: "Sep 01, 2026", amount: "$9.99/yr" },
-  { name: "Domain Registration", plan: "acme.com", domain: "acme.com", status: "Active", nextDue: "Jan 15, 2027", amount: "$12.99/yr" },
-];
-
-const tickets = [
-  { id: "#TKT-2841", subject: "Cannot access cPanel - 403 error", priority: "High", status: "Open", lastUpdated: "2 hours ago", statusColor: "bg-[#e6427a]" },
-  { id: "#TKT-2840", subject: "SSL certificate renewal failed", priority: "Medium", status: "Awaiting Reply", lastUpdated: "1 day ago", statusColor: "bg-[#e08a1e]" },
-  { id: "#TKT-2839", subject: "How to set up email forwarding", priority: "Low", status: "Closed", lastUpdated: "3 days ago", statusColor: "bg-gray-400" },
-];
-
-const announcements = [
-  { title: "New Data Center in Singapore Now Live", date: "Jul 8, 2026", excerpt: "We're excited to announce our newest data center location in Singapore, providing faster speeds for APAC customers." },
-  { title: "Scheduled Maintenance: July 15, 2026", date: "Jul 5, 2026", excerpt: "Planned maintenance on our core networking infrastructure from 2:00 AM - 4:00 AM EST." },
-  { title: "Introducing the New Site Builder", date: "Jun 28, 2026", excerpt: "Build beautiful websites with our new drag-and-drop site builder, now available on all hosting plans." },
-];
-
 const cpanelTools = [
-  { label: "File Manager", icon: "M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z", href: "/dashboard/files" },
+  { label: "File Manager", icon: "M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z", href: "/dashboard/whmcs/files" },
   { label: "Databases", icon: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4", href: "/dashboard/databases" },
   { label: "Domains", icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9", href: "/dashboard/domains" },
   { label: "Email", icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z", href: "/dashboard/email" },
@@ -54,9 +37,57 @@ export default function WhmcsUserPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [domainSearch, setDomainSearch] = useState("");
 
+  const [services, setServices] = useState([
+    { name: "Business Hosting", plan: "Business", domain: "acme.com", status: "Active", nextDue: "Aug 15, 2026", amount: "$24.99/mo" },
+    { name: "cPanel License", plan: "Pro", domain: "cpanel.acme.com", status: "Active", nextDue: "Aug 20, 2026", amount: "$15.99/mo" },
+    { name: "SSL Certificate", plan: "PositiveSSL", domain: "acme.com", status: "Active", nextDue: "Sep 01, 2026", amount: "$9.99/yr" },
+    { name: "Domain Registration", plan: "acme.com", domain: "acme.com", status: "Active", nextDue: "Jan 15, 2027", amount: "$12.99/yr" },
+  ]);
+  const [tickets, setTickets] = useState([
+    { id: "#TKT-2841", subject: "Cannot access cPanel - 403 error", priority: "High", status: "Open", lastUpdated: "2 hours ago", statusColor: "bg-[#e6427a]" },
+    { id: "#TKT-2840", subject: "SSL certificate renewal failed", priority: "Medium", status: "Awaiting Reply", lastUpdated: "1 day ago", statusColor: "bg-[#e08a1e]" },
+    { id: "#TKT-2839", subject: "How to set up email forwarding", priority: "Low", status: "Closed", lastUpdated: "3 days ago", statusColor: "bg-gray-400" },
+  ]);
+  const [announcements, setAnnouncements] = useState([
+    { title: "New Data Center in Singapore Now Live", date: "Jul 8, 2026", excerpt: "We're excited to announce our newest data center location in Singapore, providing faster speeds for APAC customers." },
+    { title: "Scheduled Maintenance: July 15, 2026", date: "Jul 5, 2026", excerpt: "Planned maintenance on our core networking infrastructure from 2:00 AM - 4:00 AM EST." },
+    { title: "Introducing the New Site Builder", date: "Jun 28, 2026", excerpt: "Build beautiful websites with our new drag-and-drop site builder, now available on all hosting plans." },
+  ]);
+  const [statCards, setStatCards] = useState(defaultStatCards);
+  const [overdueInvoices, setOverdueInvoices] = useState<{ id: string; amount: number; dueDate: string }[]>([
+    { id: "INV-2024", amount: 24.99, dueDate: "Jul 10, 2026" },
+  ]);
+  const [expiringDomains, setExpiringDomains] = useState<{ domain: string; expires: string; daysLeft: number }[]>([
+    { domain: "acme.com", expires: "Aug 15, 2026", daysLeft: 34 },
+    { domain: "shop.acme.com", expires: "Sep 01, 2026", daysLeft: 51 },
+    { domain: "api.acme.com", expires: "Jul 28, 2026", daysLeft: 16 },
+  ]);
+  const [attachedFiles, setAttachedFiles] = useState<{ name: string; size: string; date: string }[]>([]);
+
   useEffect(() => {
     const u = localStorage.getItem("user");
     if (u) setUser(JSON.parse(u));
+
+    fetch(`${API}/dashboard`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.user) {
+          const u = data.user;
+          setStatCards([
+            { label: "Services", value: String(u.services ?? 4), href: "/dashboard/projects", borderColor: "border-l-[#3cb878]", icon: defaultStatCards[0].icon },
+            { label: "Domains", value: String(u.domains ?? 3), href: "/dashboard/domains", borderColor: "border-l-[#e08a1e]", icon: defaultStatCards[1].icon },
+            { label: "Tickets", value: String(u.tickets ?? 2), href: "/dashboard/services/support-tickets", borderColor: "border-l-[#e6427a]", icon: defaultStatCards[2].icon },
+            { label: "Invoices", value: String(u.invoices ?? 1), href: "/dashboard/billing", borderColor: "border-l-[#e2372f]", icon: defaultStatCards[3].icon },
+          ]);
+          if (u.activeServices) setServices(u.activeServices);
+          if (u.recentTickets) setTickets(u.recentTickets.map((t: any) => ({ ...t, statusColor: t.status === "Open" ? "bg-[#e6427a]" : t.status === "Awaiting Reply" ? "bg-[#e08a1e]" : "bg-gray-400" })));
+          if (u.announcements) setAnnouncements(u.announcements);
+          if (u.overdueInvoices) setOverdueInvoices(u.overdueInvoices);
+          if (u.expiringDomains) setExpiringDomains(u.expiringDomains);
+          if (u.attachedFiles) setAttachedFiles(u.attachedFiles);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   return (
@@ -136,8 +167,8 @@ export default function WhmcsUserPage() {
           {/* cPanel-style Tool Grid */}
           <div className="bg-white rounded-lg border border-gray-200">
             <div className="border-b border-gray-100 px-5 py-3 flex items-center justify-between">
-              <h2 className="font-semibold text-sm text-[#1c3f66]">Quick Tools</h2>
-              <span className="text-[10px] text-gray-400">cPanel &amp; Server Tools</span>
+              <Link href="/dashboard/whmcs/cpanel" className="font-semibold text-sm text-[#1c3f66] hover:underline">Quick Tools</Link>
+              <Link href="/dashboard/whmcs/cpanel" className="text-[10px] text-[#1c3f66] hover:underline font-medium">All cPanel Tools →</Link>
             </div>
             <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
               {cpanelTools.map((tool) => (
@@ -227,6 +258,34 @@ export default function WhmcsUserPage() {
               ))}
             </div>
           </div>
+
+          {/* Domains Expiring Soon */}
+          {expiringDomains.length > 0 && (
+            <div className="bg-white rounded-lg border border-gray-200">
+              <div className="border-b border-gray-100 px-5 py-3 flex items-center justify-between">
+                <h2 className="font-semibold text-sm text-[#1c3f66]">Domains Expiring Soon</h2>
+                <Link href="/dashboard/domains" className="text-xs text-[#1c3f66] hover:underline font-medium">Renew Now</Link>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {expiringDomains.map((d) => (
+                  <div key={d.domain} className="px-5 py-3 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <svg className="w-4 h-4 text-[#e08a1e]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{d.domain}</p>
+                        <p className="text-xs text-gray-500">Expires: {d.expires}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${d.daysLeft <= 30 ? "bg-red-100 text-red-700" : d.daysLeft <= 90 ? "bg-yellow-100 text-yellow-700" : "bg-blue-100 text-blue-700"}`}>
+                        {d.daysLeft} days
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Sidebar */}
@@ -284,6 +343,54 @@ export default function WhmcsUserPage() {
               </div>
             </div>
           </div>
+
+          {/* Affiliate Program */}
+          <div className="bg-white rounded-lg border border-gray-200">
+            <div className="border-b border-gray-100 px-4 py-2.5">
+              <h3 className="font-semibold text-xs text-[#1c3f66] uppercase tracking-wider">Affiliate Program</h3>
+            </div>
+            <div className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">Commission Balance</span>
+                <span className="text-lg font-bold text-[#3cb878]">$124.50</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">Pending Commissions</span>
+                <span className="text-sm font-semibold text-[#e08a1e]">$32.00</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">Total Referrals</span>
+                <span className="text-sm font-semibold text-[#1c3f66]">7</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="bg-[#3cb878] rounded-full h-2" style={{ width: "41.5%" }} />
+              </div>
+              <p className="text-[10px] text-gray-400 text-center">$124.50 of $300.00 payout threshold</p>
+              <Link href="/dashboard/services/affiliates" className="block text-center text-xs font-medium text-white bg-[#3cb878] rounded py-1.5 hover:bg-[#2da066] transition-colors">View Affiliate Page</Link>
+            </div>
+          </div>
+
+          {/* Attached Files */}
+          {attachedFiles.length > 0 && (
+            <div className="bg-white rounded-lg border border-gray-200">
+              <div className="border-b border-gray-100 px-4 py-2.5 flex items-center justify-between">
+                <h3 className="font-semibold text-xs text-[#1c3f66] uppercase tracking-wider">Attached Files</h3>
+                <span className="text-[10px] text-gray-400">{attachedFiles.length}</span>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {attachedFiles.map((f) => (
+                  <div key={f.name} className="px-4 py-2.5 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                    <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-700 truncate">{f.name}</p>
+                      <p className="text-[10px] text-gray-400">{f.size} · {f.date}</p>
+                    </div>
+                    <svg className="w-3.5 h-3.5 text-gray-300 hover:text-[#1c3f66] cursor-pointer flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Shortcuts */}
           <div className="bg-white rounded-lg border border-gray-200">
