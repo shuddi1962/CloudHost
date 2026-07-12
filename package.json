@@ -11,7 +11,11 @@
     "clean": "turbo clean",
     "db:generate": "cd packages/db && drizzle-kit generate",
     "db:push": "cd packages/db && drizzle-kit push",
-    "db:migrate": "cd packages/db && drizzle-kit migrate"
+    "db:migrate": "cd packages/db && drizzle-kit migrate",
+    "n8n": "node n8n/packages/cli/bin/n8n start",
+    "n8n:install": "npm install -g n8n",
+    "n8n:docker": "docker compose -f infrastructure/docker/docker-compose.yml up -d n8n",
+    "n8n:global": "n8n start"
   },
   "devDependencies": {
     "turbo": "^2.0.0",

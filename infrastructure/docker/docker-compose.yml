@@ -35,6 +35,16 @@ services:
       - "1025:1025"
       - "1080:1080"
 
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    environment:
+      N8N_SECURE_COOKIE: "false"
+    volumes:
+      - n8ndata:/home/node/.n8n
+
 volumes:
   pgdata:
   miniodata:
+  n8ndata:
