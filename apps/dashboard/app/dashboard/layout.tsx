@@ -174,7 +174,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   setupDemoApi();
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [showHostingerMore, setShowHostingerMore] = useState(false);
+
   const router = useRouter();
   const pathname = usePathname();
 
@@ -230,11 +230,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {renderNavGroup("Supabase", supabaseNav, pathname)}
             {renderNavGroup("Marketplace", marketplaceNav, pathname)}
             {renderNavGroup("Services", servicesNav, pathname)}
-            {renderNavGroup("Hostinger", hostingerNavCore, pathname)}
-            {showHostingerMore && renderNavGroup("", hostingerNavMore, pathname)}
-            <button onClick={() => setShowHostingerMore(!showHostingerMore)} className="w-full text-left text-[11px] text-gray-400 hover:text-gray-600 px-3 py-1 font-medium transition-colors">
-              {showHostingerMore ? "− Show less" : `+ Show ${hostingerNavMore.length} more`}
-            </button>
+            {renderNavGroup("Hostinger", [...hostingerNavCore, ...hostingerNavMore], pathname)}
           </nav>
 
           <div className="p-4 border-t border-gray-200">
