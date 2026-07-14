@@ -108,7 +108,7 @@ export default function CreateDeploymentPage() {
   const [selectedRepoFull, setSelectedRepoFull] = useState("");
 
   useEffect(() => {
-    fetch("/api/plans?category=deployment")
+    fetch("/dashboard/api/plans?category=deployment")
       .then((r) => r.json())
       .then((data) => {
         const list = (data.plans || [])

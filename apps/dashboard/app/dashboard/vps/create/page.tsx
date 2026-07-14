@@ -110,7 +110,7 @@ export default function CreateInstancePage() {
   const [loadingSizes, setLoadingSizes] = useState(true);
 
   useEffect(() => {
-    fetch("/api/plans?category=instance")
+    fetch("/dashboard/api/plans?category=instance")
       .then((r) => r.json())
       .then((data) => {
         const list: PlanSize[] = (data.plans || [])

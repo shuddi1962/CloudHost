@@ -32,7 +32,7 @@ export default function VpsPage() {
   }, [vpsData]);
 
   useEffect(() => {
-    fetch("/api/plans?category=instance")
+    fetch("/dashboard/api/plans?category=instance")
       .then((r) => r.json())
       .then((data) => {
         const list: PlanDisplay[] = (data.plans || [])

@@ -56,7 +56,7 @@ function usePlans() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/plans");
+      const res = await fetch("/dashboard/api/plans");
       if (!res.ok) throw new Error("Failed to load plans");
       const data = await res.json();
       setPlans(data.plans || {});
@@ -112,7 +112,7 @@ function EditPlanModal({
     setSaving(true);
     setSaveError("");
     try {
-      const res = await fetch(`/api/plans/${plan.id}`, {
+      const res = await fetch(`/dashboard/api/plans/${plan.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

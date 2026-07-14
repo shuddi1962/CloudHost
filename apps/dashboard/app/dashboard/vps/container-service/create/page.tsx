@@ -39,7 +39,7 @@ export default function CreateContainerServicePage() {
   const [loadingPowers, setLoadingPowers] = useState(true);
 
   useEffect(() => {
-    fetch("/api/plans?category=container")
+    fetch("/dashboard/api/plans?category=container")
       .then((r) => r.json())
       .then((data) => {
         const list: NodePower[] = (data.plans || [])
