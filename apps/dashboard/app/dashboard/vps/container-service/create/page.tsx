@@ -39,7 +39,8 @@ export default function CreateContainerServicePage() {
   const [loadingPowers, setLoadingPowers] = useState(true);
 
   useEffect(() => {
-    fetch("/api/plans?category=container")
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    fetch(`${apiBase}/api/plans?category=container`)
       .then((r) => r.json())
       .then((data) => {
         const list: NodePower[] = (data.plans || [])

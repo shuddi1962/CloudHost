@@ -108,7 +108,8 @@ export default function CreateDeploymentPage() {
   const [selectedRepoFull, setSelectedRepoFull] = useState("");
 
   useEffect(() => {
-    fetch("/api/plans?category=deployment")
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    fetch(`${apiBase}/api/plans?category=deployment`)
       .then((r) => r.json())
       .then((data) => {
         const list = (data.plans || [])
