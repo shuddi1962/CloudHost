@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 function getClient() {
-  const svcRole = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+  let svcRole = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+  const jwtMatch = svcRole.match(/eyJ[a-zA-Z0-9_-]+?\.[a-zA-Z0-9_-]+?\.[a-zA-Z0-9_-]+/);
+  if (jwtMatch) svcRole = jwtMatch[0];
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     svcRole,
