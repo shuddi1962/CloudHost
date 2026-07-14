@@ -32,8 +32,7 @@ export default function VpsPage() {
   }, [vpsData]);
 
   useEffect(() => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    fetch(`${apiBase}/api/plans?category=instance`)
+    fetch("/api/plans?category=instance")
       .then((r) => r.json())
       .then((data) => {
         const list: PlanDisplay[] = (data.plans || [])
