@@ -38,6 +38,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ plans: grouped });
   } catch (error: any) {
     console.error("Failed to load plans:", error);
-    return NextResponse.json({ error: "Failed to load plans" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to load plans", details: error.message }, { status: 500 });
   }
 }
