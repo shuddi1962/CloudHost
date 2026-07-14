@@ -1,4 +1,4 @@
-import { db, instances, containerServices, databases, deployments, metrics } from "@cloudhost/db";
+import { db, instances, containerServices, databases, deployments, metrics, getPlanByProviderRef } from "@cloudhost/db";
 import { eq } from "drizzle-orm";
 
 const DO_API = "https://api.digitalocean.com/v2";
@@ -27,14 +27,6 @@ const DO_SIZE_MAP: Record<string, string> = {
   "s-8vcpu-32gb": "s-8vcpu-32gb",
 };
 
-const PLAN_SPECS: Record<string, { cpu: number; ram_mb: number; storage_gb: number; transfer_tb: number; price: number }> = {
-  "s-1vcpu-2gb":  { cpu: 1, ram_mb: 2048,  storage_gb: 40,  transfer_tb: 1, price: 6 },
-  "s-2vcpu-4gb":  { cpu: 2, ram_mb: 4096,  storage_gb: 80,  transfer_tb: 2, price: 12 },
-  "s-2vcpu-8gb":  { cpu: 2, ram_mb: 8192,  storage_gb: 160, transfer_tb: 3, price: 24 },
-  "s-4vcpu-16gb": { cpu: 4, ram_mb: 16384, storage_gb: 320, transfer_tb: 4, price: 48 },
-  "s-8vcpu-32gb": { cpu: 8, ram_mb: 32768, storage_gb: 640, transfer_tb: 5, price: 96 },
-};
-
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
@@ -51,7 +43,25 @@ export class ProvisioningEngine {
     tags: string[] = [],
   ): Promise<any> {
     const slug = DO_SIZE_MAP[doSlug] || "s-1vcpu-2gb";
-    const spec = PLAN_SPECS[slug] || PLAN_SPECS["s-1vcpu-2gb"];
+
+    const plan = await getPlanByProviderRef("digitalocean", slug);
+    const s = plan?.specs as Record<string, string> | undefined;
+    const spec = {
+      cpu: Number(s?.cpu?.match(/\d+/)?.[0] || 1),
+      ram_mb: (() => {
+        const match = s?.ram?.match(/([\d.]+)\s*GB/i);
+        return match ? Math.round(Number(match[1]) * 1024) : 2048;
+      })(),
+      storage_gb: (() => {
+        const match = s?.storage?.match(/(\d+)\s*GB/i);
+        return match ? Number(match[1]) : 40;
+      })(),
+      transfer_tb: (() => {
+        const match = s?.transfer?.match(/(\d+)\s*TB/i);
+        return match ? Number(match[1]) : 1;
+      })(),
+      price: plan ? Number(plan.yourPriceUsd) : 6,
+    };
 
     const dropletPayload: any = {
       name, region, size: slug, image,
@@ -137,6 +147,8 @@ export class ProvisioningEngine {
       plus: "s-1vcpu-2gb", pro: "s-2vcpu-4gb", max: "s-4vcpu-8gb",
     };
     const doSlug = containerSizeMap[nodeSize] || "s-1vcpu-1gb";
+
+    const plan = await getPlanByProviderRef("digitalocean", doSlug);
 
     const userData = `#!/bin/bash
 curl -fsSL https://get.docker.com | sh

@@ -31,11 +31,7 @@ const regions = [
   { value: "ap-northeast-1", label: "Asia Pacific (Tokyo)" },
 ];
 
-const plans = [
-  { value: "starter", label: "Starter — $10/mo" },
-  { value: "pro", label: "Pro — $29/mo" },
-  { value: "business", label: "Business — $79/mo" },
-];
+// Deployment plans are loaded from the plans table via planOptions state
 
 const nodeVersions = ["16", "18", "20", "22"];
 const phpVersions = ["7.4", "8.0", "8.1", "8.2", "8.3"];
@@ -74,6 +70,7 @@ export default function CreateDeploymentPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"upload" | "quick-install" | "git">("upload");
   const [gitAccounts, setGitAccounts] = useState<any[]>([]);
+  const [planOptions, setPlanOptions] = useState<{ value: string; label: string }[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<any | null>(null);
   const [accountRepos, setAccountRepos] = useState<any[]>([]);
   const [loadingRepos, setLoadingRepos] = useState(false);
@@ -111,6 +108,19 @@ export default function CreateDeploymentPage() {
   const [selectedRepoFull, setSelectedRepoFull] = useState("");
 
   useEffect(() => {
+    fetch("/api/plans?category=deployment")
+      .then((r) => r.json())
+      .then((data) => {
+        const list = (data.plans || [])
+          .filter((p: any) => p.isActive)
+          .map((p: any) => ({
+            value: p.planName.toLowerCase(),
+            label: `${p.planName} — $${Number(p.yourPriceUsd).toFixed(2)}/mo`,
+          }));
+        setPlanOptions(list);
+      })
+      .catch(() => {});
+
     fetch('/api/git/accounts').then(r => r.json()).then(d => {
       const accs = d.accounts || [];
       setGitAccounts(accs);
@@ -589,9 +599,13 @@ export default function CreateDeploymentPage() {
           <div>
             <label className="block text-sm font-medium mb-1">Plan</label>
             <select value={form.plan} onChange={e => setForm({ ...form, plan: e.target.value })} className="input-field">
-              {plans.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
+              {planOptions.length === 0 ? (
+                <option value="starter">Starter</option>
+              ) : (
+                planOptions.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))
+              )}
             </select>
           </div>
         </div>

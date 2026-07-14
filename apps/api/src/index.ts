@@ -45,6 +45,7 @@ import { domainServicesRouter } from "./routes/domain-services";
 import { businessToolsRouter } from "./routes/business-tools";
 import { marketingSuiteRouter } from "./routes/marketing-suite";
 import { hostingerServicesRouter } from "./routes/hostinger-services";
+import { plansRouter } from "./routes/plans";
 
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) {
@@ -106,6 +107,7 @@ app.route("/api/business-tools", businessToolsRouter);
 app.route("/api/marketing-suite", marketingSuiteRouter);
 app.route("/api/hostinger-services", hostingerServicesRouter);
 app.route("/api/deploy-upload", deployUploadRouter);
+app.route("/api/plans", plansRouter);
 
 const port = parseInt(process.env.API_PORT || "3001");
 console.log(`API server running on port ${port}`);

@@ -33,3 +33,4 @@ export * from "./hostinger_services";
 export * from "./instances";
 export * from "./container_services";
 export * from "./metrics";
+export * from "./plans";

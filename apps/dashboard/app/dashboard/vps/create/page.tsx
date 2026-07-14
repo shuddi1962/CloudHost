@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -86,26 +86,48 @@ const blueprints: Record<string, { name: string; version: string; desc: string }
   ],
 };
 
-const sizes = [
-  { price: 6, label: "$6", name: "Starter", cpu: "1 vCPU", mem: "2 GB", storage: "40 GB SSD", transfer: "1 TB Transfer", doSlug: "s-1vcpu-2gb", new: false },
-  { price: 12, label: "$12", name: "Basic", cpu: "2 vCPU", mem: "4 GB", storage: "80 GB SSD", transfer: "2 TB Transfer", doSlug: "s-2vcpu-4gb", new: false },
-  { price: 24, label: "$24", name: "Standard", cpu: "2 vCPU", mem: "8 GB", storage: "160 GB SSD", transfer: "3 TB Transfer", doSlug: "s-2vcpu-8gb", new: false },
-  { price: 48, label: "$48", name: "Performance", cpu: "4 vCPU", mem: "16 GB", storage: "320 GB SSD", transfer: "4 TB Transfer", doSlug: "s-4vcpu-16gb", new: false },
-  { price: 96, label: "$96", name: "Business", cpu: "8 vCPU", mem: "32 GB", storage: "640 GB SSD", transfer: "5 TB Transfer", doSlug: "s-8vcpu-32gb", new: false },
-];
+interface PlanSize {
+  id: string;
+  planName: string;
+  yourPriceUsd: string;
+  specs: { cpu?: string; ram?: string; storage?: string; transfer?: string };
+  providerRef: string;
+}
 
 export default function CreateInstancePage() {
   const [selectedRegion, setSelectedRegion] = useState("nyc3");
   const [showRegionPicker, setShowRegionPicker] = useState(false);
   const [platform, setPlatform] = useState<typeof platforms[number]>("Application Images");
   const [selectedBlueprint, setSelectedBlueprint] = useState("WordPress");
-  const [selectedSize, setSelectedSize] = useState<number | null>(12);
+  const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
   const [instanceName, setInstanceName] = useState("my-instance-1");
   const [showLaunchScript, setShowLaunchScript] = useState(false);
   const [launchScript, setLaunchScript] = useState("");
   const [sshOption, setSshOption] = useState("default");
   const [autoSnapshots, setAutoSnapshots] = useState(false);
   const [tags, setTags] = useState<{key: string; value: string}[]>([]);
+  const [sizes, setSizes] = useState<PlanSize[]>([]);
+  const [loadingSizes, setLoadingSizes] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/plans?category=instance")
+      .then((r) => r.json())
+      .then((data) => {
+        const list: PlanSize[] = (data.plans || [])
+          .filter((p: any) => p.isActive)
+          .map((p: any) => ({
+            id: p.id,
+            planName: p.planName,
+            yourPriceUsd: p.yourPriceUsd,
+            specs: p.specs || {},
+            providerRef: p.providerRef,
+          }));
+        setSizes(list);
+        if (list.length > 0) setSelectedPrice(list[0].yourPriceUsd);
+        setLoadingSizes(false);
+      })
+      .catch(() => setLoadingSizes(false));
+  }, []);
 
   const currentBlueprintObj = blueprints[platform].find(b => b.name === selectedBlueprint) || blueprints[platform][0];
 
@@ -133,13 +155,13 @@ export default function CreateInstancePage() {
     setCreating(true);
     setCreateError("");
     try {
-      const sizeObj = sizes.find(s => s.price === selectedSize);
+      const sizeObj = sizes.find(s => s.yourPriceUsd === selectedPrice);
       const res = await fetch("/api/vps/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: instanceName,
-          plan: sizeObj?.doSlug || "s-1vcpu-2gb",
+          plan: sizeObj?.providerRef || "s-1vcpu-2gb",
           region: selectedRegion,
           blueprint: selectedBlueprint,
           platform: platform.toLowerCase(),
@@ -175,7 +197,6 @@ export default function CreateInstancePage() {
         </div>
       </div>
 
-      {/* Region */}
       <div className="card">
         <div className="card-body">
           <h2 className="text-lg font-semibold mb-3">Instance Location</h2>
@@ -201,13 +222,11 @@ export default function CreateInstancePage() {
         </div>
       </div>
 
-      {/* Image picker */}
       <div className="card">
         <div className="card-body">
           <h2 className="text-lg font-semibold mb-1">Choose Your Image</h2>
           <p className="text-sm text-gray-600 mb-5">Pick the operating system or pre-configured application for your instance.</p>
 
-          {/* Platform tabs */}
           <div className="flex border-b border-gray-200 mb-5">
             {platforms.map((p) => (
               <button key={p} onClick={() => { setPlatform(p); setSelectedBlueprint(blueprints[p][0].name); }}
@@ -219,7 +238,6 @@ export default function CreateInstancePage() {
             ))}
           </div>
 
-          {/* Blueprints grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
             {blueprints[platform].map((bp) => (
               <button key={bp.name} onClick={() => { setSelectedBlueprint(bp.name); setShowBlueprintDetail(bp.name); }}
@@ -239,7 +257,6 @@ export default function CreateInstancePage() {
             ))}
           </div>
 
-          {/* Blueprint details */}
           {showBlueprintDetail && currentBlueprintObj && (
             <div className="border border-gray-200 rounded-xl p-5 bg-gray-50">
               <div className="flex items-center gap-4">
@@ -250,9 +267,7 @@ export default function CreateInstancePage() {
                 </div>
               </div>
               <div className="text-sm text-gray-700 space-y-1 mb-4 mt-3">
-                {currentBlueprintObj.desc && (
-                  <p>{currentBlueprintObj.desc}</p>
-                )}
+                {currentBlueprintObj.desc && <p>{currentBlueprintObj.desc}</p>}
                 {platform === "Application Images" && (
                   <p className="text-xs text-gray-400 mt-2">Installed via cloud-init scripts on first boot.</p>
                 )}
@@ -262,10 +277,8 @@ export default function CreateInstancePage() {
         </div>
       </div>
 
-      {/* Optional: Launch script, SSH key, Auto snapshots */}
       <div className="card">
         <div className="card-body space-y-6">
-          {/* Launch script */}
           <div>
             <button onClick={() => setShowLaunchScript(!showLaunchScript)}
               className="flex items-center justify-between w-full text-left">
@@ -286,7 +299,6 @@ export default function CreateInstancePage() {
 
           <hr className="border-gray-200" />
 
-          {/* SSH key */}
           <div>
             <h3 className="text-base font-semibold mb-1">SSH Key</h3>
             <p className="text-xs text-gray-500 mb-3">Select or add an SSH key to access your instance. <Link href="/dashboard/credentials" className="text-indigo-600 hover:underline">Manage SSH keys</Link></p>
@@ -304,7 +316,6 @@ export default function CreateInstancePage() {
 
           <hr className="border-gray-200" />
 
-          {/* Auto backups */}
           <div>
             <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" checked={autoSnapshots} onChange={(e) => setAutoSnapshots(e.target.checked)}
@@ -318,35 +329,41 @@ export default function CreateInstancePage() {
         </div>
       </div>
 
-      {/* Instance plan */}
       <div className="card">
         <div className="card-body">
           <h2 className="text-lg font-semibold mb-4">Choose Your Plan</h2>
-
           <p className="text-sm text-gray-500 mb-4">All plans include a public IPv4 address, SSD storage, and a monthly transfer allowance.</p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {sizes.map((s) => (
-              <button key={s.price} onClick={() => setSelectedSize(s.price)}
-                className={`text-left p-4 rounded-xl border text-sm transition-all relative ${
-                  selectedSize === s.price
-                    ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500"
-                    : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                }`}>
-                <p className="text-xl font-bold text-gray-800">{s.label}</p>
-                <p className="text-[11px] text-gray-400">per month</p>
-                <hr className="my-2 border-gray-100" />
-                <p className="text-xs font-medium text-gray-800">{s.name}</p>
-                <p className="text-xs text-gray-600">{s.cpu} / {s.mem} RAM</p>
-                <p className="text-xs text-gray-600">{s.storage} SSD</p>
-                <p className="text-xs text-gray-600">{s.transfer}</p>
-              </button>
-            ))}
-          </div>
+          {loadingSizes ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-36 bg-gray-100 rounded-xl animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {sizes.map((s) => (
+                <button key={s.id} onClick={() => setSelectedPrice(s.yourPriceUsd)}
+                  className={`text-left p-4 rounded-xl border text-sm transition-all relative ${
+                    selectedPrice === s.yourPriceUsd
+                      ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500"
+                      : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                  }`}>
+                  <p className="text-xl font-bold text-gray-800">${Number(s.yourPriceUsd).toFixed(2)}</p>
+                  <p className="text-[11px] text-gray-400">per month</p>
+                  <hr className="my-2 border-gray-100" />
+                  <p className="text-xs font-medium text-gray-800">{s.planName}</p>
+                  {s.specs.cpu && <p className="text-xs text-gray-600">{s.specs.cpu}</p>}
+                  {s.specs.ram && <p className="text-xs text-gray-600">{s.specs.ram} RAM</p>}
+                  {s.specs.storage && <p className="text-xs text-gray-600">{s.specs.storage}</p>}
+                  {s.specs.transfer && <p className="text-xs text-gray-600">{s.specs.transfer}</p>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Instance name */}
       <div className="card">
         <div className="card-body">
           <h2 className="text-lg font-semibold mb-1">Name Your Instance</h2>
@@ -361,7 +378,6 @@ export default function CreateInstancePage() {
         </div>
       </div>
 
-      {/* Tags */}
       <div className="card">
         <div className="card-body">
           <h2 className="text-lg font-semibold mb-1">Tags</h2>
@@ -387,7 +403,6 @@ export default function CreateInstancePage() {
         </div>
       </div>
 
-      {/* Footer */}
       <div className="flex items-center justify-between border-t border-gray-200 pt-6">
         <p className="text-xs text-gray-400">By creating an instance, you agree to our <Link href="/legal" className="text-indigo-600 hover:underline">Terms of Service</Link>.</p>
         {createError && <p className="text-sm text-red-600">{createError}</p>}
