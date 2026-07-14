@@ -6,9 +6,10 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
 
+    const svcRole = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      svcRole,
       { cookies: { getAll: () => [], setAll: () => {} } }
     );
 
